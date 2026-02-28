@@ -1,0 +1,504 @@
+name: Terraform Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Action
+        required: true
+        default: plan
+        type: choice
+        options:
+          - validate
+          - plan
+          - apply
+          - plan_apply
+          - plan_destroy
+          - apply_destroy
+      project:
+        description: Project name
+        required: true
+        default: siada
+        type: string
+      environment:
+        description: Environment
+        required: true
+        default: des
+        type: choice
+        options:
+          - des
+          - tqs
+          - prd
+      tf_loglevel:
+        description: Terraform Log Level
+        required: true
+        default: INFO
+        type: choice
+        options:
+          - INFO
+          - ERROR
+          - WARN
+          - DEBUG
+
+concurrency:
+  group: terraform-${{ inputs.project }}-${{ inputs.environment }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  WORKING_DIRECTORY: tf_infra
+  TF_VERSION: latest
+  BACKEND_RESOURCE_GROUP: rg-tfstate-${{ inputs.project }}
+  BACKEND_STORAGE_ACCOUNT: stgtfstate${{ inputs.project }}001
+  BACKEND_CONTAINER: tfstatecontainer
+  BACKEND_KEY: ${{ inputs.environment }}-${{ inputs.project }}-infra.tfstate
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Validate
+# ─────────────────────────────────────────────────────────────────────────────
+jobs:
+  terraform_validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    if: contains(fromJson('["validate","plan","apply","plan_apply","plan_destroy","apply_destroy"]'), inputs.action)
+    env:
+      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Replace tokens in backend and tfvars
+        uses: cschleiden/replace-tokens@v1
+        with:
+          files: '["**/backend.tf","**/tfvars/${{ inputs.environment }}.tfvars"]'
+          tokenPrefix: '__'
+          tokenSuffix: '__'
+        env:
+          BackendAzureRmResourceGroupName: ${{ env.BACKEND_RESOURCE_GROUP }}
+          BackendAzureRmStorageAccountName: ${{ env.BACKEND_STORAGE_ACCOUNT }}
+          BackendAzureRmContainerName: ${{ env.BACKEND_CONTAINER }}
+          BackendAzureRmKey: ${{ env.BACKEND_KEY }}
+          BackendAzureRmSubscriptionId: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          env: ${{ inputs.environment }}
+          project_name: ${{ inputs.project }}
+          subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          bastion_subnet_prefix: ${{ vars.BASTION_SUBNET_PREFIX }}
+          bastion_sku: ${{ vars.BASTION_SKU }}
+          jumper_vm_size: ${{ vars.JUMPER_VM_SIZE }}
+          jumper_admin_username: ${{ vars.JUMPER_ADMIN_USERNAME }}
+          jumper_admin_ssh_public_key: ${{ secrets.JUMPER_ADMIN_SSH_PUBLIC_KEY }}
+
+      - name: Show replaced tfvars
+        run: cat ${{ env.WORKING_DIRECTORY }}/tfvars/${{ inputs.environment }}.tfvars
+
+      - name: Terraform Init
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          terraform init -upgrade -reconfigure \
+            -backend-config="resource_group_name=${{ env.BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ env.BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ env.BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ env.BACKEND_KEY }}"
+        env:
+          TF_LOG: ${{ inputs.tf_loglevel }}
+
+      - name: Terraform Format Check
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: terraform validate
+        env:
+          TF_LOG: ${{ inputs.tf_loglevel }}
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Init TFLint
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run TFLint
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: tflint --format compact
+
+      - name: Post Validate Log
+        run: echo "Terraform Validate Completed"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Plan
+# ─────────────────────────────────────────────────────────────────────────────
+  terraform_plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    needs: terraform_validate
+    environment: ${{ inputs.environment }}
+    if: contains(fromJson('["plan","apply"]'), inputs.action)
+    env:
+      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Replace tokens in backend and tfvars
+        uses: cschleiden/replace-tokens@v1
+        with:
+          files: '["**/backend.tf","**/tfvars/${{ inputs.environment }}.tfvars"]'
+          tokenPrefix: '__'
+          tokenSuffix: '__'
+        env:
+          BackendAzureRmResourceGroupName: ${{ env.BACKEND_RESOURCE_GROUP }}
+          BackendAzureRmStorageAccountName: ${{ env.BACKEND_STORAGE_ACCOUNT }}
+          BackendAzureRmContainerName: ${{ env.BACKEND_CONTAINER }}
+          BackendAzureRmKey: ${{ env.BACKEND_KEY }}
+          BackendAzureRmSubscriptionId: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          env: ${{ inputs.environment }}
+          project_name: ${{ inputs.project }}
+          subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          bastion_subnet_prefix: ${{ vars.BASTION_SUBNET_PREFIX }}
+          bastion_sku: ${{ vars.BASTION_SKU }}
+          jumper_vm_size: ${{ vars.JUMPER_VM_SIZE }}
+          jumper_admin_username: ${{ vars.JUMPER_ADMIN_USERNAME }}
+          jumper_admin_ssh_public_key: ${{ secrets.JUMPER_ADMIN_SSH_PUBLIC_KEY }}
+
+      - name: Show replaced tfvars
+        run: cat ${{ env.WORKING_DIRECTORY }}/tfvars/${{ inputs.environment }}.tfvars
+
+      - name: Terraform Init
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          terraform init -upgrade -reconfigure \
+            -backend-config="resource_group_name=${{ env.BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ env.BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ env.BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ env.BACKEND_KEY }}"
+        env:
+          TF_LOG: ${{ inputs.tf_loglevel }}
+
+      - name: Terraform Workspace Select
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: terraform workspace select -or-create=true ${{ inputs.environment }}
+
+      - name: Terraform Plan
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          terraform plan \
+            -input=false \
+            -var-file="tfvars/${{ inputs.environment }}.tfvars" \
+            -out=tfapply.tfplan
+        env:
+          TF_LOG: ${{ inputs.tf_loglevel }}
+
+      - name: Setup Infracost
+        if: inputs.environment != 'des'
+        uses: infracost/actions/setup@v3
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Convert tfplan to JSON
+        if: inputs.environment != 'des'
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: terraform show -json tfapply.tfplan > output.json
+
+      - name: Infracost Output
+        if: inputs.environment != 'des'
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          echo "Infracost version: $(infracost --version)"
+          echo "Setting currency to BRL..."
+          infracost configure set currency BRL
+          echo "Show Cost"
+          infracost breakdown --show-skipped --path output.json
+
+      - name: Archive files
+        run: |
+          zip -r ${{ github.workspace }}/output-${{ inputs.environment }}.zip . \
+            --exclude ".git/*"
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: output-${{ inputs.environment }}
+          path: output-${{ inputs.environment }}.zip
+          retention-days: 5
+
+      - name: Post Plan Log
+        run: echo "Terraform Plan Completed"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Plan + Apply (combined — fast iteration for DES module testing)
+# ─────────────────────────────────────────────────────────────────────────────
+  terraform_plan_apply:
+    name: Terraform Plan & Apply
+    runs-on: ubuntu-latest
+    needs: terraform_validate
+    if: inputs.action == 'plan_apply'
+    environment: ${{ inputs.environment }}
+    env:
+      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Replace tokens in backend and tfvars
+        uses: cschleiden/replace-tokens@v1
+        with:
+          files: '["**/backend.tf","**/tfvars/${{ inputs.environment }}.tfvars"]'
+          tokenPrefix: '__'
+          tokenSuffix: '__'
+        env:
+          BackendAzureRmResourceGroupName: ${{ env.BACKEND_RESOURCE_GROUP }}
+          BackendAzureRmStorageAccountName: ${{ env.BACKEND_STORAGE_ACCOUNT }}
+          BackendAzureRmContainerName: ${{ env.BACKEND_CONTAINER }}
+          BackendAzureRmKey: ${{ env.BACKEND_KEY }}
+          BackendAzureRmSubscriptionId: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          env: ${{ inputs.environment }}
+          project_name: ${{ inputs.project }}
+          subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          bastion_subnet_prefix: ${{ vars.BASTION_SUBNET_PREFIX }}
+          bastion_sku: ${{ vars.BASTION_SKU }}
+          jumper_vm_size: ${{ vars.JUMPER_VM_SIZE }}
+          jumper_admin_username: ${{ vars.JUMPER_ADMIN_USERNAME }}
+          jumper_admin_ssh_public_key: ${{ secrets.JUMPER_ADMIN_SSH_PUBLIC_KEY }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          terraform init -upgrade -reconfigure \
+            -backend-config="resource_group_name=${{ env.BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ env.BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ env.BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ env.BACKEND_KEY }}"
+        env:
+          TF_LOG: ${{ inputs.tf_loglevel }}
+
+      - name: Terraform Workspace Select
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: terraform workspace select -or-create=true ${{ inputs.environment }}
+
+      - name: Terraform Plan
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          terraform plan \
+            -input=false \
+            -var-file="tfvars/${{ inputs.environment }}.tfvars" \
+            -out=tfapply.tfplan
+        env:
+          TF_LOG: ${{ inputs.tf_loglevel }}
+
+      - name: Terraform Apply
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: terraform apply -input=false -auto-approve tfapply.tfplan
+        env:
+          TF_LOG: ${{ inputs.tf_loglevel }}
+
+      - name: Post Plan Apply Log
+        run: echo "Terraform Plan & Apply Completed"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Apply
+# ─────────────────────────────────────────────────────────────────────────────
+  terraform_apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: terraform_plan
+    if: inputs.action == 'apply'
+    environment: ${{ inputs.environment }}
+    env:
+      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+    steps:
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: output-${{ inputs.environment }}
+          path: ${{ github.workspace }}/artifact
+
+      - name: Extract artifact
+        run: |
+          unzip -o ${{ github.workspace }}/artifact/output-${{ inputs.environment }}.zip \
+            -d ${{ github.workspace }}/extract
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Apply
+        working-directory: ${{ github.workspace }}/extract/${{ env.WORKING_DIRECTORY }}
+        run: terraform apply -input=false -auto-approve tfapply.tfplan
+        env:
+          TF_LOG: ${{ inputs.tf_loglevel }}
+
+      - name: Post Apply Log
+        run: echo "Terraform Apply Completed"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Plan Destroy
+# ─────────────────────────────────────────────────────────────────────────────
+  terraform_plan_destroy:
+    name: Terraform Plan Destroy
+    runs-on: ubuntu-latest
+    needs: terraform_validate
+    environment: ${{ inputs.environment }}
+    if: contains(fromJson('["plan_destroy","apply_destroy"]'), inputs.action)
+    env:
+      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Replace tokens in backend and tfvars
+        uses: cschleiden/replace-tokens@v1
+        with:
+          files: '["**/backend.tf","**/tfvars/${{ inputs.environment }}.tfvars"]'
+          tokenPrefix: '__'
+          tokenSuffix: '__'
+        env:
+          BackendAzureRmResourceGroupName: ${{ env.BACKEND_RESOURCE_GROUP }}
+          BackendAzureRmStorageAccountName: ${{ env.BACKEND_STORAGE_ACCOUNT }}
+          BackendAzureRmContainerName: ${{ env.BACKEND_CONTAINER }}
+          BackendAzureRmKey: ${{ env.BACKEND_KEY }}
+          BackendAzureRmSubscriptionId: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          env: ${{ inputs.environment }}
+          project_name: ${{ inputs.project }}
+          subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+          bastion_subnet_prefix: ${{ vars.BASTION_SUBNET_PREFIX }}
+          bastion_sku: ${{ vars.BASTION_SKU }}
+          jumper_vm_size: ${{ vars.JUMPER_VM_SIZE }}
+          jumper_admin_username: ${{ vars.JUMPER_ADMIN_USERNAME }}
+          jumper_admin_ssh_public_key: ${{ secrets.JUMPER_ADMIN_SSH_PUBLIC_KEY }}
+
+      - name: Show replaced tfvars
+        run: cat ${{ env.WORKING_DIRECTORY }}/tfvars/${{ inputs.environment }}.tfvars
+
+      - name: Terraform Init
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          terraform init -upgrade -reconfigure \
+            -backend-config="resource_group_name=${{ env.BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ env.BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ env.BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ env.BACKEND_KEY }}"
+        env:
+          TF_LOG: ${{ inputs.tf_loglevel }}
+
+      - name: Terraform Workspace Select
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: terraform workspace select -or-create=true ${{ inputs.environment }}
+
+      - name: Terraform Plan Destroy
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          terraform plan \
+            -input=false \
+            -destroy \
+            -var-file="tfvars/${{ inputs.environment }}.tfvars" \
+            -out=tfdestroy.tfplan
+        env:
+          TF_LOG: ${{ inputs.tf_loglevel }}
+
+      - name: Archive files
+        run: |
+          zip -r ${{ github.workspace }}/output-${{ inputs.environment }}.zip . \
+            --exclude ".git/*"
+
+      - name: Upload destroy plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: output-${{ inputs.environment }}
+          path: output-${{ inputs.environment }}.zip
+          retention-days: 5
+
+      - name: Post Plan Destroy Log
+        run: echo "Terraform Plan Destroy Completed"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Apply Destroy
+# ─────────────────────────────────────────────────────────────────────────────
+  terraform_apply_destroy:
+    name: Terraform Apply Destroy
+    runs-on: ubuntu-latest
+    needs: terraform_plan_destroy
+    if: inputs.action == 'apply_destroy'
+    environment: ${{ inputs.environment }}
+    env:
+      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+    steps:
+      - name: Download destroy plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: output-${{ inputs.environment }}
+          path: ${{ github.workspace }}/artifact
+
+      - name: Extract artifact
+        run: |
+          unzip -o ${{ github.workspace }}/artifact/output-${{ inputs.environment }}.zip \
+            -d ${{ github.workspace }}/extract
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Destroy
+        working-directory: ${{ github.workspace }}/extract/${{ env.WORKING_DIRECTORY }}
+        run: terraform apply -input=false -auto-approve tfdestroy.tfplan
+        env:
+          TF_LOG: ${{ inputs.tf_loglevel }}
+
+      - name: Post Destroy Log
+        run: echo "Terraform Destroy Completed"

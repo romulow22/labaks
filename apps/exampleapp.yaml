@@ -1,0 +1,110 @@
+# ── Namespace ─────────────────────────────────────────────────────────────────
+# istio.io/rev label activates sidecar injection for the AKS managed Istio addon.
+# The revision value (asm-1-21) must match the Istio revision installed by AKS.
+# Do NOT use the classic istio-injection: enabled label with the managed addon.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: helloworld
+  labels:
+    istio.io/rev: asm-1-28
+---
+# ── Deployment ────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworld
+  namespace: helloworld
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: helloworld
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: helloworld
+        version: v1
+        # Ensures the Istio sidecar (envoy proxy) is injected into this pod.
+        # The sidecar handles mTLS, telemetry, and traffic policies automatically.
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+      - name: helloworld
+        image: mcr.microsoft.com/azuredocs/aks-helloworld:v1
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: TITLE
+          value: "Hello World — running on AKS with Istio service mesh"
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "256Mi"
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+---
+# ── Service ───────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: helloworld
+  namespace: helloworld
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    name: http       # Named port required by Istio for protocol detection
+    targetPort: 80
+  selector:
+    app: helloworld
+---
+# ── Istio Gateway ─────────────────────────────────────────────────────────────
+# Routes inbound traffic from outside the cluster into the mesh.
+# The selector targets the AKS managed Istio EXTERNAL ingress gateway pod
+# (deployed by Terraform via service_mesh_profile external_ingress_gateway_enabled).
+# The external gateway LoadBalancer IP is provisioned automatically by AKS
+# in the node resource group.
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: helloworld-gateway
+  namespace: helloworld
+spec:
+  selector:
+    # This label targets the AKS managed external Istio ingress gateway.
+    # Use "aks-istio-ingressgateway-internal" for the internal gateway instead.
+    istio: aks-istio-ingressgateway-external
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "myapplabaks.com"
+---
+# ── VirtualService ────────────────────────────────────────────────────────────
+# Binds the Gateway to the backend Service and defines routing rules.
+# Istio evaluates these rules inside the mesh (L7 routing, retries, etc.).
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: helloworld
+  namespace: helloworld
+spec:
+  hosts:
+  - "myapplabaks.com"
+  gateways:
+  - helloworld-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: helloworld
+        port:
+          number: 80

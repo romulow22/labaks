@@ -32,6 +32,13 @@ override.tf.json
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
 
+# Ignore generated secrets (SSH keys, kubeconfig)
+tf_infra/secrets/
+secrets/
+
+# Re-include tokenized tfvars (they contain only placeholder tokens, not real secrets)
+!tf_infra/tfvars/*.tfvars
+
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
