@@ -12,7 +12,7 @@ resource "azurerm_storage_account" "storage_account" {
   allow_nested_items_to_be_public = var.allow_blob_public_access
   min_tls_version                 = "TLS1_2"
   https_traffic_only_enabled      = true
-  shared_access_key_enabled       = true
+  shared_access_key_enabled       = false
 
   # Disable local SSH users and SFTP — not needed, prefer Entra ID auth
   local_user_enabled = false
@@ -71,6 +71,18 @@ resource "azurerm_monitor_diagnostic_setting" "diag_storage" {
   name                       = "diag-${azurerm_storage_account.storage_account.name}"
   target_resource_id         = "${azurerm_storage_account.storage_account.id}/blobServices/default"
   log_analytics_workspace_id = var.workspace_id
+
+  enabled_log {
+    category = "StorageRead"
+  }
+
+  enabled_log {
+    category = "StorageWrite"
+  }
+
+  enabled_log {
+    category = "StorageDelete"
+  }
 
   enabled_metric {
     category = "Transaction"

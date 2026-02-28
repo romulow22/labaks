@@ -25,7 +25,7 @@ resource "azurerm_bastion_host" "bastion" {
   location            = var.location
   resource_group_name = var.rg_name
   sku                 = var.bastion_sku
-  scale_units         = var.bastion_sku == "Standard" ? 2 : 2
+  scale_units         = var.bastion_sku == "Standard" ? var.bastion_scale_units : 2
 
   tunneling_enabled  = var.bastion_sku == "Standard" ? true : false
   ip_connect_enabled = var.bastion_sku == "Standard" ? true : false

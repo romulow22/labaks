@@ -283,7 +283,7 @@ variable "log_analytics_workspace_sku" {
   }
 }
 
-variable "log_anatytics_workspaces" {
+variable "log_analytics_workspaces" {
   description = "A map of workspaces and their associated solutions."
   type = map(object({
     retention_days = number

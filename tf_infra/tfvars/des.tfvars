@@ -73,7 +73,7 @@ log_analytics = {
   "resources" = "resources"
 }
 
-log_anatytics_workspaces = {
+log_analytics_workspaces = {
   "aks" = {
     retention_days = 30
     solution_name  = "ContainerInsights"

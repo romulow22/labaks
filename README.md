@@ -18,6 +18,7 @@ A production-ready **Azure Kubernetes Service (AKS)** platform fully provisioned
 │   └── Set-TfEnvVars.ps1          # Set ARM env vars for local dev
 ├── tf_infra/
 │   ├── main.tf                    # Root module wiring all sub-modules
+│   ├── outputs.tf                 # Root-level outputs (aks_name, resource_group_name, etc.)
 │   ├── variables.tf               # Root-level variable declarations
 │   ├── backend.tf                 # Empty partial config — filled at runtime
 │   ├── backend.conf.tpl           # Single source of truth for backend naming
@@ -111,7 +112,9 @@ This creates the following resources (default region: `brazilsouth`). Names foll
 
 ### 2. Configure GitHub Environments
 
-Create two GitHub Environments named `des` and `prd` and populate the following variables and secrets.
+Create three GitHub Environments named `des`, `tqs`, and `prd` and populate the following variables and secrets.
+
+> **Note:** The CI/CD pipeline uses **OIDC (Federated Identity)** to authenticate with Azure — no client secret is required. Ensure your Service Principal has a **Federated Credential** configured for the GitHub Actions environment (see [Azure OIDC with GitHub Actions](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure)).
 
 **Variables:**
 
@@ -120,12 +123,7 @@ Create two GitHub Environments named `des` and `prd` and populate the following 
 | `ARM_CLIENT_ID` | Service Principal App ID |
 | `ARM_TENANT_ID` | Azure Tenant ID |
 | `ARM_SUBSCRIPTION_ID` | Azure Subscription ID |
-
-**Secrets:**
-
-| Name | Description |
-|------|-------------|
-| `ARM_CLIENT_SECRET` | Service Principal secret |
+| `TF_PROJECT` | Short project name (e.g. `siada`) — used by helm-deploy to render `backend.hcl` |
 
 ### 3. Local Development
 
@@ -166,7 +164,7 @@ Triggered manually via `workflow_dispatch` with the following inputs:
 |-------|---------|-------------|
 | `action` | `validate`, `plan`, `apply`, `plan_apply`, `plan_destroy`, `apply_destroy` | Terraform operation |
 | `project` | string | Short project name (e.g. `siada`) |
-| `environment` | `des`, `prd` | Target environment |
+| `environment` | `des`, `tqs`, `prd` | Target environment |
 | `tf_loglevel` | `INFO`, `ERROR`, `WARN`, `DEBUG` | Terraform log verbosity |
 
 **Job Flow:**
@@ -183,7 +181,7 @@ terraform_validate
 
 **Pipeline highlights:**
 
-- **`backend.conf.tpl` → `backend.hcl`** — each job renders the template with `sed` using `inputs.project`, `inputs.environment`, and `ARM_SUBSCRIPTION_ID`. `backend.hcl` is gitignored and never committed. This is the single source of truth for all backend resource naming.
+- **`backend.conf.tpl` → `backend.hcl`** — each job renders the template with `sed` using `inputs.project`, `inputs.environment`, and `ARM_SUBSCRIPTION_ID`. `backend.hcl` is gitignored and never committed. This is the single source of truth for all backend resource naming. `use_azuread_auth = true` is included so the backend authenticates via OIDC — no storage account key is needed.
 - **Token replacement** (`cschleiden/replace-tokens`) injects `subscription_id`, `project_name`, and `env` into `.tfvars` files only — `backend.tf` is no longer touched.
 - **TFLint** runs on every execution for static analysis.
 - **Infracost** (currency: BRL) generates a cost estimate during plan for non-`des` environments.
@@ -259,7 +257,7 @@ Linux VM (Ubuntu 24.04 LTS) in the private subnet for secure cluster administrat
 - Cloud-init script installs: Azure CLI, `kubectl`, Helm
 
 ### `modules/bastion`
-Azure Bastion in a dedicated `/26` subnet. Standard SKU supports native client tunneling for `kubectl` proxying.
+Azure Bastion in a dedicated `/26` subnet. Standard SKU supports native client tunneling for `kubectl` proxying. The `bastion_scale_units` variable (default: `2`, max: `50`) allows scaling the Standard SKU host for higher concurrency; ignored on Basic SKU.
 
 ### `modules/loganalytics`
 Creates Log Analytics workspaces (SKU: `PerGB2018`). Two workspaces are provisioned:
@@ -273,8 +271,9 @@ Storage Account (StorageV2) with:
 - Blob versioning + soft-delete (7 days for blobs and containers)
 - TLS 1.2 enforced; HTTPS-only enabled
 - `allow_nested_items_to_be_public = false`
+- `shared_access_key_enabled = false` — storage account key auth disabled; all access requires Entra ID
 - `local_user_enabled = false` and `sftp_enabled = false` — SFTP surface disabled, prefer Entra ID auth
-- Diagnostic logs forwarded to the `resources` Log Analytics workspace
+- Diagnostic logs (StorageRead, StorageWrite, StorageDelete) and Transaction metrics forwarded to the `resources` Log Analytics workspace
 - Configurable blob container and file share
 
 ---
@@ -283,7 +282,8 @@ Storage Account (StorageV2) with:
 
 | Environment | Key Differences |
 |-------------|-----------------|
-| `des` | Spot VMs for Jumper, debug-level Terraform + addon logging, Infracost skipped |
+| `des` | Spot VMs for Jumper and AKS worker pool, debug-level Terraform + addon logging, Infracost skipped |
+| `tqs` | Standard VMs, info-level logging, isolated Terraform workspace for QA/testing |
 | `prd` | Standard VMs, info-level logging, Infracost cost breakdown enabled (BRL) |
 
 ---
@@ -310,6 +310,8 @@ kubectl apply -f apps/exampleapp.yaml
 
 - All VMs reside in private subnets; access is only possible via Azure Bastion
 - Public blob access is disabled on all storage accounts
+- Storage Account shared access keys disabled (`shared_access_key_enabled = false`) — all access requires Entra ID
+- Storage Account audit logs (StorageRead, StorageWrite, StorageDelete) forwarded to Log Analytics
 - TLS 1.2 minimum enforced on storage accounts; HTTPS-only traffic
 - Storage Account local users and SFTP are disabled
 - Key Vault uses RBAC (not legacy access policies)

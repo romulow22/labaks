@@ -60,7 +60,7 @@ module "loganalytics" {
   location      = var.region
   workspace_sku = var.log_analytics_workspace_sku
   workspaces = {
-    (each.value) = var.log_anatytics_workspaces["${each.value}"]
+    (each.value) = var.log_analytics_workspaces["${each.value}"]
   }
   depends_on = [module.rg]
 }

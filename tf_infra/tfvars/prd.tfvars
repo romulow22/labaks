@@ -27,7 +27,7 @@ pvt_subnet_security_rules = __subnet_pvt_security_rules__
 ########## Log Analytics ############
 log_analytics_workspace_sku = __log_analytics_workspace_sku__
 log_analytics               = __log_analytics__
-log_anatytics_workspaces    = __log_anatytics_workspaces__
+log_analytics_workspaces    = __log_analytics_workspaces__
 
 ######## Storage ACCOUNT ##########
 storage_access_tier              = __stg_access_tier__

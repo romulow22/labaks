@@ -27,6 +27,7 @@ on:
         type: choice
         options:
           - des
+          - tqs
           - prd
       tf_loglevel:
         description: Terraform Log Level
@@ -45,6 +46,7 @@ concurrency:
 
 permissions:
   contents: read
+  id-token: write
 
 env:
   WORKING_DIRECTORY: tf_infra
