@@ -8,7 +8,7 @@ resource "azurerm_log_analytics_workspace" "workspace" {
   internet_ingestion_enabled = true
   internet_query_enabled     = true
   # Force Entra ID auth for all workspace queries — disables legacy workspace keys
-  local_authentication_disabled = true
+  local_authentication_enabled = false
   tags = {
     Environment = var.environment
     Project     = var.proj_name

@@ -49,6 +49,12 @@ permissions:
 env:
   WORKING_DIRECTORY: tf_infra
   TF_VERSION: latest
+  TF_IN_AUTOMATION: "true"
+  ARM_USE_OIDC: "true"
+  ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+  TF_LOG: ${{ inputs.tf_loglevel }}
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Validate
@@ -59,16 +65,18 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     if: contains(fromJson('["validate","plan","apply","plan_apply","plan_destroy","apply_destroy"]'), inputs.action)
-    env:
-      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.ARM_CLIENT_ID }}
+          tenant-id: ${{ vars.ARM_TENANT_ID }}
+          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -99,22 +107,6 @@ jobs:
 
       - name: Show replaced tfvars
         run: cat ${{ env.WORKING_DIRECTORY }}/tfvars/${{ inputs.environment }}.tfvars
-
-      - name: Terraform Init
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: terraform init -upgrade -reconfigure -backend-config=backend.hcl
-        env:
-          TF_LOG: ${{ inputs.tf_loglevel }}
-
-      - name: Terraform Format Check
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: terraform fmt -check -recursive
-
-      - name: Terraform Validate
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: terraform validate
-        env:
-          TF_LOG: ${{ inputs.tf_loglevel }}
 
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
@@ -131,6 +123,19 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: tflint --format compact
 
+
+      - name: Terraform Init
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: terraform init -upgrade -reconfigure -backend-config=backend.hcl
+
+      - name: Terraform Format Check
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: terraform validate          
+
       - name: Post Validate Log
         run: echo "Terraform Validate Completed"
 
@@ -143,11 +148,7 @@ jobs:
     needs: terraform_validate
     environment: ${{ inputs.environment }}
     if: contains(fromJson('["plan","apply"]'), inputs.action)
-    env:
-      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -158,6 +159,13 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.ARM_CLIENT_ID }}
+          tenant-id: ${{ vars.ARM_TENANT_ID }}
+          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
 
       - name: Generate backend.hcl from template
         working-directory: ${{ env.WORKING_DIRECTORY }}
@@ -187,8 +195,6 @@ jobs:
       - name: Terraform Init
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: terraform init -upgrade -reconfigure -backend-config=backend.hcl
-        env:
-          TF_LOG: ${{ inputs.tf_loglevel }}
 
       - name: Terraform Workspace Select
         working-directory: ${{ env.WORKING_DIRECTORY }}
@@ -201,29 +207,6 @@ jobs:
             -input=false \
             -var-file="tfvars/${{ inputs.environment }}.tfvars" \
             -out=tfapply.tfplan
-        env:
-          TF_LOG: ${{ inputs.tf_loglevel }}
-
-      - name: Setup Infracost
-        if: inputs.environment != 'des'
-        uses: infracost/actions/setup@v3
-        with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
-
-      - name: Convert tfplan to JSON
-        if: inputs.environment != 'des'
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: terraform show -json tfapply.tfplan > output.json
-
-      - name: Infracost Output
-        if: inputs.environment != 'des'
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: |
-          echo "Infracost version: $(infracost --version)"
-          echo "Setting currency to BRL..."
-          infracost configure set currency BRL
-          echo "Show Cost"
-          infracost breakdown --show-skipped --path output.json
 
       - name: Archive files
         run: |
@@ -249,11 +232,7 @@ jobs:
     needs: terraform_validate
     if: inputs.action == 'plan_apply'
     environment: ${{ inputs.environment }}
-    env:
-      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -264,6 +243,13 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.ARM_CLIENT_ID }}
+          tenant-id: ${{ vars.ARM_TENANT_ID }}
+          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
 
       - name: Generate backend.hcl from template
         working-directory: ${{ env.WORKING_DIRECTORY }}
@@ -290,8 +276,6 @@ jobs:
       - name: Terraform Init
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: terraform init -upgrade -reconfigure -backend-config=backend.hcl
-        env:
-          TF_LOG: ${{ inputs.tf_loglevel }}
 
       - name: Terraform Workspace Select
         working-directory: ${{ env.WORKING_DIRECTORY }}
@@ -304,14 +288,10 @@ jobs:
             -input=false \
             -var-file="tfvars/${{ inputs.environment }}.tfvars" \
             -out=tfapply.tfplan
-        env:
-          TF_LOG: ${{ inputs.tf_loglevel }}
 
       - name: Terraform Apply
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: terraform apply -input=false -auto-approve tfapply.tfplan
-        env:
-          TF_LOG: ${{ inputs.tf_loglevel }}
 
       - name: Post Plan Apply Log
         run: echo "Terraform Plan & Apply Completed"
@@ -325,11 +305,7 @@ jobs:
     needs: terraform_plan
     if: inputs.action == 'apply'
     environment: ${{ inputs.environment }}
-    env:
-      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+
     steps:
       - name: Download plan artifact
         uses: actions/download-artifact@v4
@@ -347,11 +323,16 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.ARM_CLIENT_ID }}
+          tenant-id: ${{ vars.ARM_TENANT_ID }}
+          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+
       - name: Terraform Apply
         working-directory: ${{ github.workspace }}/extract/${{ env.WORKING_DIRECTORY }}
         run: terraform apply -input=false -auto-approve tfapply.tfplan
-        env:
-          TF_LOG: ${{ inputs.tf_loglevel }}
 
       - name: Post Apply Log
         run: echo "Terraform Apply Completed"
@@ -365,11 +346,7 @@ jobs:
     needs: terraform_validate
     environment: ${{ inputs.environment }}
     if: contains(fromJson('["plan_destroy","apply_destroy"]'), inputs.action)
-    env:
-      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -380,6 +357,13 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.ARM_CLIENT_ID }}
+          tenant-id: ${{ vars.ARM_TENANT_ID }}
+          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
 
       - name: Generate backend.hcl from template
         working-directory: ${{ env.WORKING_DIRECTORY }}
@@ -409,8 +393,6 @@ jobs:
       - name: Terraform Init
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: terraform init -upgrade -reconfigure -backend-config=backend.hcl
-        env:
-          TF_LOG: ${{ inputs.tf_loglevel }}
 
       - name: Terraform Workspace Select
         working-directory: ${{ env.WORKING_DIRECTORY }}
@@ -424,8 +406,6 @@ jobs:
             -destroy \
             -var-file="tfvars/${{ inputs.environment }}.tfvars" \
             -out=tfdestroy.tfplan
-        env:
-          TF_LOG: ${{ inputs.tf_loglevel }}
 
       - name: Archive files
         run: |
@@ -451,11 +431,7 @@ jobs:
     needs: terraform_plan_destroy
     if: inputs.action == 'apply_destroy'
     environment: ${{ inputs.environment }}
-    env:
-      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+
     steps:
       - name: Download destroy plan artifact
         uses: actions/download-artifact@v4
@@ -473,11 +449,16 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.ARM_CLIENT_ID }}
+          tenant-id: ${{ vars.ARM_TENANT_ID }}
+          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+
       - name: Terraform Destroy
         working-directory: ${{ github.workspace }}/extract/${{ env.WORKING_DIRECTORY }}
         run: terraform apply -input=false -auto-approve tfdestroy.tfplan
-        env:
-          TF_LOG: ${{ inputs.tf_loglevel }}
 
       - name: Post Destroy Log
         run: echo "Terraform Destroy Completed"
