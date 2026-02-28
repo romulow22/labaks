@@ -1,28 +1,28 @@
 ######## Enabled Modules ############
-enable_module_rg                    = true
-enable_module_vnet                  = true
-enable_module_subnetaks             = true
-enable_module_subnetpvt             = true
-enable_module_loganalytics          = true
-enable_module_storageaccount        = true
-enable_module_aks                   = true
-enable_module_bastion               = true
-enable_module_jumpervm              = true
-enable_module_keyvault              = true
+enable_module_rg             = true
+enable_module_vnet           = true
+enable_module_subnetaks      = true
+enable_module_subnetpvt      = true
+enable_module_loganalytics   = true
+enable_module_storageaccount = true
+enable_module_aks            = true
+enable_module_bastion        = true
+enable_module_jumpervm       = true
+enable_module_keyvault       = true
 
 ####### Basic Info ##################
-subscription_id     = __subscription_id__
-project_name        = __project_name__
-region              = "brazilsouth"
-environment         = "des"
-resource_groups     = {
+subscription_id = __subscription_id__
+project_name    = __project_name__
+region          = "brazilsouth"
+environment     = "des"
+resource_groups = {
   "vnet"      = "vnet"
   "aks"       = "aks"
   "resources" = "resources"
 }
 
 ########### Network #################
-vnet      = ["10.0.0.0/16"]
+vnet       = ["10.0.0.0/16"]
 aks_subnet = ["10.0.1.0/24"]
 pvt_subnet = ["10.0.2.0/24"]
 
@@ -85,27 +85,26 @@ log_anatytics_workspaces = {
     }
   }
   "resources" = {
-    retention_days = 30
-    solution_name  = ""
+    retention_days    = 30
+    solution_name     = ""
     solution_plan_map = {}
   }
 }
 
 ######## Storage ACCOUNT ##########
-storage_access_tier           = "Hot"
-storage_account_kind          = "StorageV2"
-storage_replication_type      = "LRS"
-storage_account_tier          = "Standard"
-storage_container_name        = "des-container"
-storage_container_access_type = "private"
-storage_file_share_name       = "des-fileshare"
-storage_file_share_quota      = 50
-storage_default_action        = "Allow"
+storage_access_tier              = "Hot"
+storage_account_kind             = "StorageV2"
+storage_replication_type         = "LRS"
+storage_account_tier             = "Standard"
+storage_container_name           = "des-container"
+storage_container_access_type    = "private"
+storage_file_share_name          = "des-fileshare"
+storage_file_share_quota         = 50
+storage_default_action           = "Allow"
 storage_allow_blob_public_access = false
 
 ######### KEY VAULT ################
-enable_module_keyvault = true
-keyvault_sku           = "standard"
+keyvault_sku = "standard"
 
 ######### BASTION & JUMPER VM #####
 bastion_subnet_prefix = "10.0.3.0/26"
@@ -121,6 +120,12 @@ aks_max_node_count = 3
 aks_min_node_count = 1
 aks_node_vm_size   = "Standard_D2s_v3"
 acr_sku            = "Basic"
+
+######## AKS UPGRADE / MAINTENANCE ##########
+aks_automatic_upgrade_channel    = "patch"
+aks_node_os_upgrade_channel      = "SecurityPatch"
+aks_image_cleaner_enabled        = true
+aks_image_cleaner_interval_hours = 48
 
 ######## AKS MONITORING ##########
 aks_log_data_collection_interval                     = "1m"

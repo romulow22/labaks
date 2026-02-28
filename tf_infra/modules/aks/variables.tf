@@ -10,7 +10,7 @@ variable "environment" {
   description = "environment"
 }
 
-variable "proj_name"{
+variable "proj_name" {
   type        = string
   description = "project Name"
 }
@@ -39,7 +39,7 @@ variable "node_vm_size" {
   description = "Worker nodes size"
 }
 
-variable "cluster_version"{
+variable "cluster_version" {
   type        = string
   description = "AKS version"
 }
@@ -54,18 +54,18 @@ variable "dns_service_ip" {
   description = "Aks DNS Service Ip"
 }
 
-variable "rg_name"{
+variable "rg_name" {
   type        = string
   description = "resource group name"
 }
 
-variable "rg_id"{
+variable "rg_id" {
   type        = string
   description = "resource group id"
 }
 
 
-variable "workspace_id"{
+variable "workspace_id" {
   type        = string
   description = "workspace_id"
 }
@@ -112,5 +112,37 @@ variable "acr_sku" {
     condition     = contains(["Basic", "Standard", "Premium"], var.acr_sku)
     error_message = "ACR SKU must be Basic, Standard, or Premium."
   }
+}
+
+variable "automatic_upgrade_channel" {
+  type        = string
+  description = "AKS auto-upgrade channel: none, patch, rapid, stable, or node-image"
+  default     = "patch"
+  validation {
+    condition     = contains(["none", "patch", "rapid", "stable", "node-image"], var.automatic_upgrade_channel)
+    error_message = "automatic_upgrade_channel must be none, patch, rapid, stable, or node-image."
+  }
+}
+
+variable "node_os_upgrade_channel" {
+  type        = string
+  description = "Node OS upgrade channel: None, Unmanaged, NodeImage, or SecurityPatch"
+  default     = "SecurityPatch"
+  validation {
+    condition     = contains(["None", "Unmanaged", "NodeImage", "SecurityPatch"], var.node_os_upgrade_channel)
+    error_message = "node_os_upgrade_channel must be None, Unmanaged, NodeImage, or SecurityPatch."
+  }
+}
+
+variable "image_cleaner_enabled" {
+  type        = bool
+  description = "Enable image cleaner to remove unused container images from nodes"
+  default     = true
+}
+
+variable "image_cleaner_interval_hours" {
+  type        = number
+  description = "Interval in hours between image cleaner runs"
+  default     = 48
 }
 

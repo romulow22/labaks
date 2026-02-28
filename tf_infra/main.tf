@@ -17,7 +17,7 @@ module "vnet" {
   environment   = var.environment
   proj_name     = var.project_name
   rg_name       = module.rg["vnet"].rg_name
-  depends_on = [ module.rg ]
+  depends_on    = [module.rg]
 }
 
 # creating subnet for aks
@@ -32,7 +32,7 @@ module "subnetaks" {
   proj_name             = var.project_name
   location              = var.region
   security_rules        = var.aks_subnet_security_rules
-  depends_on = [ module.vnet ]
+  depends_on            = [module.vnet]
 }
 
 # creating subnet for pvt
@@ -47,26 +47,26 @@ module "subnetpvt" {
   proj_name             = var.project_name
   location              = var.region
   security_rules        = var.pvt_subnet_security_rules
-  depends_on = [ module.vnet ]
+  depends_on            = [module.vnet]
 }
 
 
 module "loganalytics" {
-  source          = "./modules/loganalytics"
-  for_each        = var.enable_module_loganalytics ? var.log_analytics : {}
-  rg_name         = module.rg["${each.value}"].rg_name
-  environment     = var.environment
-  proj_name       = var.project_name
-  location        = var.region
-  workspace_sku   = var.log_analytics_workspace_sku
-  workspaces      = { 
-    (each.value)  = var.log_anatytics_workspaces["${each.value}"]
+  source        = "./modules/loganalytics"
+  for_each      = var.enable_module_loganalytics ? var.log_analytics : {}
+  rg_name       = module.rg["${each.value}"].rg_name
+  environment   = var.environment
+  proj_name     = var.project_name
+  location      = var.region
+  workspace_sku = var.log_analytics_workspace_sku
+  workspaces = {
+    (each.value) = var.log_anatytics_workspaces["${each.value}"]
   }
-  depends_on = [ module.rg ]
+  depends_on = [module.rg]
 }
 
 module "storageaccount" {
-  count             = var.enable_module_storageaccount ? 1 : 0
+  count                     = var.enable_module_storageaccount ? 1 : 0
   source                    = "./modules/storageaccount"
   location                  = var.region
   proj_name                 = var.project_name
@@ -84,7 +84,7 @@ module "storageaccount" {
   file_share_quota          = var.storage_file_share_quota
   default_action            = var.storage_default_action
   workspace_id              = var.enable_module_loganalytics ? module.loganalytics["resources"].log_analytics_workspace_id["resources"] : ""
-  depends_on                = [ module.rg, module.aks, module.loganalytics ]
+  depends_on                = [module.rg, module.aks, module.loganalytics]
 }
 
 
@@ -116,44 +116,48 @@ module "bastion" {
 
 # creating Jumper VM (access to AKS via Bastion)
 module "jumpervm" {
-  count                = var.enable_module_jumpervm ? 1 : 0
-  source               = "./modules/jumpervm"
-  location             = var.region
-  proj_name            = var.project_name
-  environment          = var.environment
-  rg_name              = module.rg["resources"].rg_name
-  subnet_id            = var.enable_module_subnetpvt ? module.subnetpvt[0].public_subnet_id : ""
-  vm_size              = var.jumper_vm_size
-  admin_username       = var.jumper_admin_username
-  key_vault_id         = var.enable_module_keyvault ? module.keyvault[0].key_vault_id : ""
-  aks_cluster_id       = var.enable_module_aks ? module.aks[0].aks_cluster_id : ""
-  depends_on           = [module.subnetpvt, module.aks, module.keyvault]
+  count          = var.enable_module_jumpervm ? 1 : 0
+  source         = "./modules/jumpervm"
+  location       = var.region
+  proj_name      = var.project_name
+  environment    = var.environment
+  rg_name        = module.rg["resources"].rg_name
+  subnet_id      = var.enable_module_subnetpvt ? module.subnetpvt[0].public_subnet_id : ""
+  vm_size        = var.jumper_vm_size
+  admin_username = var.jumper_admin_username
+  key_vault_id   = var.enable_module_keyvault ? module.keyvault[0].key_vault_id : ""
+  aks_cluster_id = var.enable_module_aks ? module.aks[0].aks_cluster_id : ""
+  depends_on     = [module.subnetpvt, module.aks, module.keyvault]
 }
 
 # creating AKS
 module "aks" {
-  count                                         = var.enable_module_aks ? 1 : 0
-  source                                        = "./modules/aks"
-  rg_name                                       = module.rg["aks"].rg_name
-  rg_id                                         = module.rg["aks"].rg_id
-  location                                      = var.region
-  proj_name                                     = var.project_name
-  cluster_version                               = var.aks_version
-  service_cidr                                  = var.aks_service_cidr
-  dns_service_ip                                = var.aks_dns_service_ip
-  environment                                   = var.environment
-  max_count                                     = var.aks_max_node_count
-  min_count                                     = var.aks_min_node_count
-  subnetaks_id                                  = var.enable_module_subnetaks ? module.subnetaks[0].public_subnet_id : ""
-  node_vm_size                                  = var.aks_node_vm_size
-  workspace_id                                  = var.enable_module_loganalytics ? module.loganalytics["aks"].log_analytics_workspace_id["aks"] : ""
-  streams                                       = var.aks_log_streams
-  data_collection_interval                      = var.aks_log_data_collection_interval  
-  namespace_filtering_mode_for_data_collection  = var.aks_log_namespace_filtering_mode_for_data_collection
-  namespaces_for_data_collection                = var.aks_log_namespaces_for_data_collection     
-  enableContainerLogV2                          = var.aks_log_enableContainerLogV2
-  acr_sku                                       = var.acr_sku
-  depends_on = [ module.subnetaks, module.loganalytics]
+  count                                        = var.enable_module_aks ? 1 : 0
+  source                                       = "./modules/aks"
+  rg_name                                      = module.rg["aks"].rg_name
+  rg_id                                        = module.rg["aks"].rg_id
+  location                                     = var.region
+  proj_name                                    = var.project_name
+  cluster_version                              = var.aks_version
+  service_cidr                                 = var.aks_service_cidr
+  dns_service_ip                               = var.aks_dns_service_ip
+  environment                                  = var.environment
+  max_count                                    = var.aks_max_node_count
+  min_count                                    = var.aks_min_node_count
+  subnetaks_id                                 = var.enable_module_subnetaks ? module.subnetaks[0].public_subnet_id : ""
+  node_vm_size                                 = var.aks_node_vm_size
+  workspace_id                                 = var.enable_module_loganalytics ? module.loganalytics["aks"].log_analytics_workspace_id["aks"] : ""
+  streams                                      = var.aks_log_streams
+  data_collection_interval                     = var.aks_log_data_collection_interval
+  namespace_filtering_mode_for_data_collection = var.aks_log_namespace_filtering_mode_for_data_collection
+  namespaces_for_data_collection               = var.aks_log_namespaces_for_data_collection
+  enableContainerLogV2                         = var.aks_log_enableContainerLogV2
+  acr_sku                                      = var.acr_sku
+  automatic_upgrade_channel                    = var.aks_automatic_upgrade_channel
+  node_os_upgrade_channel                      = var.aks_node_os_upgrade_channel
+  image_cleaner_enabled                        = var.aks_image_cleaner_enabled
+  image_cleaner_interval_hours                 = var.aks_image_cleaner_interval_hours
+  depends_on                                   = [module.subnetaks, module.loganalytics]
 }
 
 # AKS credentials for the Helm provider — resolved after module.aks completes

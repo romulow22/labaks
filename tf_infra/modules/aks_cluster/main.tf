@@ -16,14 +16,26 @@ resource "azurerm_user_assigned_identity" "aks_identity" {
 
 # creating AKS cluster
 resource "azurerm_kubernetes_cluster" "aks" {
-  name                      = "aks-${var.proj_name}-${var.environment}"
-  location                  = var.location
-  resource_group_name       = var.rg_name
-  dns_prefix                = "dns-aks-${var.proj_name}-${var.environment}"
-  node_resource_group       = "rg-${var.proj_name}-aksnodes-${var.environment}"
-  sku_tier                  = var.environment == "prd" ? "Standard" : "Free"
-  kubernetes_version        = var.cluster_version
-  azure_policy_enabled      = true
+  name                 = "aks-${var.proj_name}-${var.environment}"
+  location             = var.location
+  resource_group_name  = var.rg_name
+  dns_prefix           = "dns-aks-${var.proj_name}-${var.environment}"
+  node_resource_group  = "rg-${var.proj_name}-aksnodes-${var.environment}"
+  sku_tier             = var.environment == "prd" ? "Standard" : "Free"
+  kubernetes_version   = var.cluster_version
+  azure_policy_enabled = true
+
+  # Workload Identity + OIDC — required for pod-level Azure auth (akv2k8s, etc.)
+  workload_identity_enabled = true
+  oidc_issuer_enabled       = true
+
+  # Automatic upgrade channels
+  automatic_upgrade_channel = var.automatic_upgrade_channel
+  node_os_upgrade_channel   = var.node_os_upgrade_channel
+
+  # Periodically clean unused container images from nodes (saves disk space)
+  image_cleaner_enabled        = var.image_cleaner_enabled
+  image_cleaner_interval_hours = var.image_cleaner_interval_hours
 
   default_node_pool {
     name                 = "sysnodepool"
@@ -36,6 +48,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     vnet_subnet_id       = var.subnetaks_id
     os_disk_size_gb      = 30
     os_disk_type         = "Managed"
+    os_sku               = "AzureLinux"
     type                 = "VirtualMachineScaleSets"
 
     node_labels = {
@@ -47,7 +60,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
     upgrade_settings {
       drain_timeout_in_minutes      = 0
-      max_surge                     = "10%"
+      max_surge                     = "33%"
       node_soak_duration_in_minutes = 0
     }
 
@@ -96,6 +109,26 @@ resource "azurerm_kubernetes_cluster" "aks" {
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
     revisions                        = ["asm-1-28"]
+  }
+
+  # Scheduled maintenance window for AKS control-plane auto-upgrades
+  maintenance_window_auto_upgrade {
+    frequency   = "Weekly"
+    interval    = 1
+    day_of_week = "Sunday"
+    start_time  = "02:00"
+    duration    = 4
+    utc_offset  = "-03:00"
+  }
+
+  # Scheduled maintenance window for node OS image updates
+  maintenance_window_node_os {
+    frequency   = "Weekly"
+    interval    = 1
+    day_of_week = "Sunday"
+    start_time  = "03:00"
+    duration    = 4
+    utc_offset  = "-03:00"
   }
 
   maintenance_window {
@@ -153,7 +186,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "wrk_nodepool" {
 
   upgrade_settings {
     drain_timeout_in_minutes      = 0
-    max_surge                     = "10%"
+    max_surge                     = "33%"
     node_soak_duration_in_minutes = 0
   }
 

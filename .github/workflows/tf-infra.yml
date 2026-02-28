@@ -27,7 +27,6 @@ on:
         type: choice
         options:
           - des
-          - tqs
           - prd
       tf_loglevel:
         description: Terraform Log Level
@@ -50,10 +49,6 @@ permissions:
 env:
   WORKING_DIRECTORY: tf_infra
   TF_VERSION: latest
-  BACKEND_RESOURCE_GROUP: rg-tfstate-${{ inputs.project }}
-  BACKEND_STORAGE_ACCOUNT: stgtfstate${{ inputs.project }}001
-  BACKEND_CONTAINER: tfstatecontainer
-  BACKEND_KEY: ${{ inputs.environment }}-${{ inputs.project }}-infra.tfstate
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Validate
@@ -80,38 +75,34 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Replace tokens in backend and tfvars
+      - name: Generate backend.hcl from template
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          sed \
+            -e 's|${project}|${{ inputs.project }}|g' \
+            -e 's|${environment}|${{ inputs.environment }}|g' \
+            -e 's|${subscription}|${{ vars.ARM_SUBSCRIPTION_ID }}|g' \
+            backend.conf.tpl > backend.hcl
+          echo "Generated backend.hcl:"
+          cat backend.hcl
+
+      - name: Replace tokens in tfvars
         uses: cschleiden/replace-tokens@v1
         with:
-          files: '["**/backend.tf","**/tfvars/${{ inputs.environment }}.tfvars"]'
+          files: '["**/tfvars/${{ inputs.environment }}.tfvars"]'
           tokenPrefix: '__'
           tokenSuffix: '__'
         env:
-          BackendAzureRmResourceGroupName: ${{ env.BACKEND_RESOURCE_GROUP }}
-          BackendAzureRmStorageAccountName: ${{ env.BACKEND_STORAGE_ACCOUNT }}
-          BackendAzureRmContainerName: ${{ env.BACKEND_CONTAINER }}
-          BackendAzureRmKey: ${{ env.BACKEND_KEY }}
-          BackendAzureRmSubscriptionId: ${{ vars.ARM_SUBSCRIPTION_ID }}
           env: ${{ inputs.environment }}
           project_name: ${{ inputs.project }}
           subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
-          bastion_subnet_prefix: ${{ vars.BASTION_SUBNET_PREFIX }}
-          bastion_sku: ${{ vars.BASTION_SKU }}
-          jumper_vm_size: ${{ vars.JUMPER_VM_SIZE }}
-          jumper_admin_username: ${{ vars.JUMPER_ADMIN_USERNAME }}
-          jumper_admin_ssh_public_key: ${{ secrets.JUMPER_ADMIN_SSH_PUBLIC_KEY }}
 
       - name: Show replaced tfvars
         run: cat ${{ env.WORKING_DIRECTORY }}/tfvars/${{ inputs.environment }}.tfvars
 
       - name: Terraform Init
         working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: |
-          terraform init -upgrade -reconfigure \
-            -backend-config="resource_group_name=${{ env.BACKEND_RESOURCE_GROUP }}" \
-            -backend-config="storage_account_name=${{ env.BACKEND_STORAGE_ACCOUNT }}" \
-            -backend-config="container_name=${{ env.BACKEND_CONTAINER }}" \
-            -backend-config="key=${{ env.BACKEND_KEY }}"
+        run: terraform init -upgrade -reconfigure -backend-config=backend.hcl
         env:
           TF_LOG: ${{ inputs.tf_loglevel }}
 
@@ -168,38 +159,34 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Replace tokens in backend and tfvars
+      - name: Generate backend.hcl from template
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          sed \
+            -e 's|${project}|${{ inputs.project }}|g' \
+            -e 's|${environment}|${{ inputs.environment }}|g' \
+            -e 's|${subscription}|${{ vars.ARM_SUBSCRIPTION_ID }}|g' \
+            backend.conf.tpl > backend.hcl
+          echo "Generated backend.hcl:"
+          cat backend.hcl
+
+      - name: Replace tokens in tfvars
         uses: cschleiden/replace-tokens@v1
         with:
-          files: '["**/backend.tf","**/tfvars/${{ inputs.environment }}.tfvars"]'
+          files: '["**/tfvars/${{ inputs.environment }}.tfvars"]'
           tokenPrefix: '__'
           tokenSuffix: '__'
         env:
-          BackendAzureRmResourceGroupName: ${{ env.BACKEND_RESOURCE_GROUP }}
-          BackendAzureRmStorageAccountName: ${{ env.BACKEND_STORAGE_ACCOUNT }}
-          BackendAzureRmContainerName: ${{ env.BACKEND_CONTAINER }}
-          BackendAzureRmKey: ${{ env.BACKEND_KEY }}
-          BackendAzureRmSubscriptionId: ${{ vars.ARM_SUBSCRIPTION_ID }}
           env: ${{ inputs.environment }}
           project_name: ${{ inputs.project }}
           subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
-          bastion_subnet_prefix: ${{ vars.BASTION_SUBNET_PREFIX }}
-          bastion_sku: ${{ vars.BASTION_SKU }}
-          jumper_vm_size: ${{ vars.JUMPER_VM_SIZE }}
-          jumper_admin_username: ${{ vars.JUMPER_ADMIN_USERNAME }}
-          jumper_admin_ssh_public_key: ${{ secrets.JUMPER_ADMIN_SSH_PUBLIC_KEY }}
 
       - name: Show replaced tfvars
         run: cat ${{ env.WORKING_DIRECTORY }}/tfvars/${{ inputs.environment }}.tfvars
 
       - name: Terraform Init
         working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: |
-          terraform init -upgrade -reconfigure \
-            -backend-config="resource_group_name=${{ env.BACKEND_RESOURCE_GROUP }}" \
-            -backend-config="storage_account_name=${{ env.BACKEND_STORAGE_ACCOUNT }}" \
-            -backend-config="container_name=${{ env.BACKEND_CONTAINER }}" \
-            -backend-config="key=${{ env.BACKEND_KEY }}"
+        run: terraform init -upgrade -reconfigure -backend-config=backend.hcl
         env:
           TF_LOG: ${{ inputs.tf_loglevel }}
 
@@ -278,35 +265,31 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Replace tokens in backend and tfvars
+      - name: Generate backend.hcl from template
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          sed \
+            -e 's|${project}|${{ inputs.project }}|g' \
+            -e 's|${environment}|${{ inputs.environment }}|g' \
+            -e 's|${subscription}|${{ vars.ARM_SUBSCRIPTION_ID }}|g' \
+            backend.conf.tpl > backend.hcl
+          echo "Generated backend.hcl:"
+          cat backend.hcl
+
+      - name: Replace tokens in tfvars
         uses: cschleiden/replace-tokens@v1
         with:
-          files: '["**/backend.tf","**/tfvars/${{ inputs.environment }}.tfvars"]'
+          files: '["**/tfvars/${{ inputs.environment }}.tfvars"]'
           tokenPrefix: '__'
           tokenSuffix: '__'
         env:
-          BackendAzureRmResourceGroupName: ${{ env.BACKEND_RESOURCE_GROUP }}
-          BackendAzureRmStorageAccountName: ${{ env.BACKEND_STORAGE_ACCOUNT }}
-          BackendAzureRmContainerName: ${{ env.BACKEND_CONTAINER }}
-          BackendAzureRmKey: ${{ env.BACKEND_KEY }}
-          BackendAzureRmSubscriptionId: ${{ vars.ARM_SUBSCRIPTION_ID }}
           env: ${{ inputs.environment }}
           project_name: ${{ inputs.project }}
           subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
-          bastion_subnet_prefix: ${{ vars.BASTION_SUBNET_PREFIX }}
-          bastion_sku: ${{ vars.BASTION_SKU }}
-          jumper_vm_size: ${{ vars.JUMPER_VM_SIZE }}
-          jumper_admin_username: ${{ vars.JUMPER_ADMIN_USERNAME }}
-          jumper_admin_ssh_public_key: ${{ secrets.JUMPER_ADMIN_SSH_PUBLIC_KEY }}
 
       - name: Terraform Init
         working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: |
-          terraform init -upgrade -reconfigure \
-            -backend-config="resource_group_name=${{ env.BACKEND_RESOURCE_GROUP }}" \
-            -backend-config="storage_account_name=${{ env.BACKEND_STORAGE_ACCOUNT }}" \
-            -backend-config="container_name=${{ env.BACKEND_CONTAINER }}" \
-            -backend-config="key=${{ env.BACKEND_KEY }}"
+        run: terraform init -upgrade -reconfigure -backend-config=backend.hcl
         env:
           TF_LOG: ${{ inputs.tf_loglevel }}
 
@@ -398,38 +381,34 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Replace tokens in backend and tfvars
+      - name: Generate backend.hcl from template
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          sed \
+            -e 's|${project}|${{ inputs.project }}|g' \
+            -e 's|${environment}|${{ inputs.environment }}|g' \
+            -e 's|${subscription}|${{ vars.ARM_SUBSCRIPTION_ID }}|g' \
+            backend.conf.tpl > backend.hcl
+          echo "Generated backend.hcl:"
+          cat backend.hcl
+
+      - name: Replace tokens in tfvars
         uses: cschleiden/replace-tokens@v1
         with:
-          files: '["**/backend.tf","**/tfvars/${{ inputs.environment }}.tfvars"]'
+          files: '["**/tfvars/${{ inputs.environment }}.tfvars"]'
           tokenPrefix: '__'
           tokenSuffix: '__'
         env:
-          BackendAzureRmResourceGroupName: ${{ env.BACKEND_RESOURCE_GROUP }}
-          BackendAzureRmStorageAccountName: ${{ env.BACKEND_STORAGE_ACCOUNT }}
-          BackendAzureRmContainerName: ${{ env.BACKEND_CONTAINER }}
-          BackendAzureRmKey: ${{ env.BACKEND_KEY }}
-          BackendAzureRmSubscriptionId: ${{ vars.ARM_SUBSCRIPTION_ID }}
           env: ${{ inputs.environment }}
           project_name: ${{ inputs.project }}
           subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
-          bastion_subnet_prefix: ${{ vars.BASTION_SUBNET_PREFIX }}
-          bastion_sku: ${{ vars.BASTION_SKU }}
-          jumper_vm_size: ${{ vars.JUMPER_VM_SIZE }}
-          jumper_admin_username: ${{ vars.JUMPER_ADMIN_USERNAME }}
-          jumper_admin_ssh_public_key: ${{ secrets.JUMPER_ADMIN_SSH_PUBLIC_KEY }}
 
       - name: Show replaced tfvars
         run: cat ${{ env.WORKING_DIRECTORY }}/tfvars/${{ inputs.environment }}.tfvars
 
       - name: Terraform Init
         working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: |
-          terraform init -upgrade -reconfigure \
-            -backend-config="resource_group_name=${{ env.BACKEND_RESOURCE_GROUP }}" \
-            -backend-config="storage_account_name=${{ env.BACKEND_STORAGE_ACCOUNT }}" \
-            -backend-config="container_name=${{ env.BACKEND_CONTAINER }}" \
-            -backend-config="key=${{ env.BACKEND_KEY }}"
+        run: terraform init -upgrade -reconfigure -backend-config=backend.hcl
         env:
           TF_LOG: ${{ inputs.tf_loglevel }}
 

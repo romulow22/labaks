@@ -26,8 +26,8 @@ variable "workspace_sku" {
 variable "workspaces" {
   description = "A map of workspaces and their associated solutions"
   type = map(object({
-    retention_days    = number
-    solution_name = string
+    retention_days = number
+    solution_name  = string
     solution_plan_map = map(object({
       product   = string
       publisher = string

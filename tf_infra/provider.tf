@@ -1,19 +1,19 @@
 # Azure Provider
 terraform {
-  required_version = ">=1.10.0"
+  required_version = ">=1.11.0"
 
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~>4.0"
+      version = "~>4.14"
     }
     helm = {
       source  = "hashicorp/helm"
-      version = "~>2.0"
+      version = "~>2.17"
     }
     local = {
       source  = "hashicorp/local"
-      version = "~>2.0"
+      version = "~>2.5"
     }
     tls = {
       source  = "hashicorp/tls"
@@ -21,7 +21,7 @@ terraform {
     }
     random = {
       source  = "hashicorp/random"
-      version = "~>3.0"
+      version = "~>3.7"
     }
   }
 }
@@ -39,8 +39,15 @@ provider "azurerm" {
     }
     virtual_machine {
       delete_os_disk_on_deletion     = true
-      graceful_shutdown              = false
       skip_shutdown_and_force_delete = false
+    }
+    log_analytics_workspace {
+      # Permanently delete workspace on destroy instead of soft-delete (avoids name conflicts)
+      permanently_delete_on_destroy = true
+    }
+    managed_disk {
+      # Allow managed disk expansion without VM downtime
+      expand_without_downtime = true
     }
   }
 }

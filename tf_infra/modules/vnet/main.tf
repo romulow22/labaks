@@ -6,6 +6,11 @@ resource "azurerm_virtual_network" "virtual_network" {
   address_space       = var.address_space
   dns_servers         = []
 
+  # Drop unencrypted inter-VM traffic within the VNet (requires compatible VM SKUs)
+  encryption {
+    enforcement = "AllowUnencrypted"
+  }
+
   tags = {
     Environment = var.environment
     Project     = var.proj_name

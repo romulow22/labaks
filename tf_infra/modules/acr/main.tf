@@ -5,6 +5,15 @@ resource "azurerm_container_registry" "acr" {
   sku                 = var.sku
   admin_enabled       = false
 
+  # Zone redundancy requires Premium SKU
+  zone_redundancy_enabled = var.sku == "Premium" ? true : false
+
+  # Auto-purge untagged manifests (Standard and Premium only)
+  retention_policy_in_days = var.sku != "Basic" ? 7 : null
+
+  # Quarantine policy: images must pass scanning before being pullable (Premium)
+  quarantine_policy_enabled = var.sku == "Premium" ? true : false
+
   tags = {
     Environment = var.environment
     Project     = var.proj_name

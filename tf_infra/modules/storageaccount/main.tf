@@ -14,6 +14,10 @@ resource "azurerm_storage_account" "storage_account" {
   https_traffic_only_enabled      = true
   shared_access_key_enabled       = true
 
+  # Disable local SSH users and SFTP — not needed, prefer Entra ID auth
+  local_user_enabled = false
+  sftp_enabled       = false
+
   blob_properties {
     versioning_enabled = true
     delete_retention_policy {
@@ -68,7 +72,7 @@ resource "azurerm_monitor_diagnostic_setting" "diag_storage" {
   target_resource_id         = "${azurerm_storage_account.storage_account.id}/blobServices/default"
   log_analytics_workspace_id = var.workspace_id
 
-  metric {
+  enabled_metric {
     category = "Transaction"
   }
 }

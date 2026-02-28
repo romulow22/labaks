@@ -19,13 +19,13 @@ variable "environment" {
 }
 
 
-variable "aks_identity_principal_id"{
+variable "aks_identity_principal_id" {
   type        = string
   description = "aks_identity_principal_id"
 }
 
 
-variable "rg_id"{
+variable "rg_id" {
   type        = string
   description = "resource group id"
 }
@@ -84,7 +84,7 @@ variable "file_share_quota" {
   type        = number
 }
 
-variable "workspace_id"{
+variable "workspace_id" {
   type        = string
   description = "workspace_id"
 }

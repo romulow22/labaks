@@ -1,20 +1,24 @@
 # Orchestrator — wires cluster, ACR, monitoring, and addons sub-modules
 
 module "cluster" {
-  source          = "../aks_cluster"
-  proj_name       = var.proj_name
-  environment     = var.environment
-  location        = var.location
-  rg_name         = var.rg_name
-  rg_id           = var.rg_id
-  cluster_version = var.cluster_version
-  node_vm_size    = var.node_vm_size
-  max_count       = var.max_count
-  min_count       = var.min_count
-  subnetaks_id    = var.subnetaks_id
-  service_cidr    = var.service_cidr
-  dns_service_ip  = var.dns_service_ip
-  workspace_id    = var.workspace_id
+  source                       = "../aks_cluster"
+  proj_name                    = var.proj_name
+  environment                  = var.environment
+  location                     = var.location
+  rg_name                      = var.rg_name
+  rg_id                        = var.rg_id
+  cluster_version              = var.cluster_version
+  node_vm_size                 = var.node_vm_size
+  max_count                    = var.max_count
+  min_count                    = var.min_count
+  subnetaks_id                 = var.subnetaks_id
+  service_cidr                 = var.service_cidr
+  dns_service_ip               = var.dns_service_ip
+  workspace_id                 = var.workspace_id
+  automatic_upgrade_channel    = var.automatic_upgrade_channel
+  node_os_upgrade_channel      = var.node_os_upgrade_channel
+  image_cleaner_enabled        = var.image_cleaner_enabled
+  image_cleaner_interval_hours = var.image_cleaner_interval_hours
 }
 
 module "acr" {

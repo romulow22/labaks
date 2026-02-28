@@ -16,13 +16,13 @@ variable "environment" {
   description = "Environment"
 }
 
-variable "proj_name"{
+variable "proj_name" {
   type        = string
   description = "project Name"
 }
 
 
-variable "rg_name"{
+variable "rg_name" {
   type        = string
   description = "resource group name"
 }

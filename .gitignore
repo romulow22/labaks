@@ -39,6 +39,9 @@ secrets/
 # Re-include tokenized tfvars (they contain only placeholder tokens, not real secrets)
 !tf_infra/tfvars/*.tfvars
 
+# Generated backend config (contains subscription ID — never commit)
+tf_infra/backend.hcl
+
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc

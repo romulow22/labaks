@@ -1,4 +1,4 @@
-# ── akv2k8s (Azure Key Vault to Kubernetes) ───────────────────────────────────
+#  akv2k8s (Azure Key Vault to Kubernetes) 
 # Syncs Key Vault secrets/certs into K8s secrets; injects them into pods via env
 resource "helm_release" "akv2k8s" {
   name             = "akv2k8s"
@@ -7,6 +7,9 @@ resource "helm_release" "akv2k8s" {
   namespace        = "akv2k8s"
   create_namespace = true
   version          = "2.5.3"
+  cleanup_on_fail  = true
+  atomic           = true
+  timeout          = 300
 
   set = [
     {
@@ -37,10 +40,6 @@ resource "helm_release" "akv2k8s" {
       name  = "global.azureWorkloadIdentity.clientId"
       value = var.aks_identity_client_id
     },
-    {
-
-    }
   ]
   depends_on = [var.aks_cluster_id]
 }
-

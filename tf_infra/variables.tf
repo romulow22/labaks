@@ -138,31 +138,31 @@ variable "pvt_subnet" {
 variable "pvt_subnet_security_rules" {
   description = "A list of security rules to be created."
   type = list(object({
-    name                          = string
-    priority                      = number
-    direction                     = string 
-    access                        = string
-    protocol                      = string
-    source_port_ranges            = list(string)
-    destination_port_ranges       = list(string)
-    source_address_prefixes       = list(string)
-    destination_address_prefixes  = list(string)
-    }))
+    name                         = string
+    priority                     = number
+    direction                    = string
+    access                       = string
+    protocol                     = string
+    source_port_ranges           = list(string)
+    destination_port_ranges      = list(string)
+    source_address_prefixes      = list(string)
+    destination_address_prefixes = list(string)
+  }))
 }
 
 variable "aks_subnet_security_rules" {
   description = "A list of security rules to be created."
   type = list(object({
-    name                          = string
-    priority                      = number
-    direction                     = string 
-    access                        = string
-    protocol                      = string
-    source_port_ranges            = list(string)
-    destination_port_ranges       = list(string)
-    source_address_prefixes       = list(string)
-    destination_address_prefixes  = list(string)
-    }))
+    name                         = string
+    priority                     = number
+    direction                    = string
+    access                       = string
+    protocol                     = string
+    source_port_ranges           = list(string)
+    destination_port_ranges      = list(string)
+    source_address_prefixes      = list(string)
+    destination_address_prefixes = list(string)
+  }))
 }
 
 
@@ -286,8 +286,8 @@ variable "log_analytics_workspace_sku" {
 variable "log_anatytics_workspaces" {
   description = "A map of workspaces and their associated solutions."
   type = map(object({
-    retention_days    = number
-    solution_name     = string
+    retention_days = number
+    solution_name  = string
     solution_plan_map = map(object({
       product   = string
       publisher = string
@@ -339,5 +339,38 @@ variable "acr_sku" {
     condition     = contains(["Basic", "Standard", "Premium"], var.acr_sku)
     error_message = "ACR SKU must be Basic, Standard, or Premium."
   }
+}
+
+// ========================== AKS upgrade variables ==========================
+variable "aks_automatic_upgrade_channel" {
+  type        = string
+  description = "AKS auto-upgrade channel: none, patch, rapid, stable, or node-image"
+  default     = "patch"
+  validation {
+    condition     = contains(["none", "patch", "rapid", "stable", "node-image"], var.aks_automatic_upgrade_channel)
+    error_message = "aks_automatic_upgrade_channel must be none, patch, rapid, stable, or node-image."
+  }
+}
+
+variable "aks_node_os_upgrade_channel" {
+  type        = string
+  description = "Node OS upgrade channel: None, Unmanaged, NodeImage, or SecurityPatch"
+  default     = "SecurityPatch"
+  validation {
+    condition     = contains(["None", "Unmanaged", "NodeImage", "SecurityPatch"], var.aks_node_os_upgrade_channel)
+    error_message = "aks_node_os_upgrade_channel must be None, Unmanaged, NodeImage, or SecurityPatch."
+  }
+}
+
+variable "aks_image_cleaner_enabled" {
+  type        = bool
+  description = "Enable image cleaner to remove unused container images from nodes"
+  default     = true
+}
+
+variable "aks_image_cleaner_interval_hours" {
+  type        = number
+  description = "Interval in hours between image cleaner runs (1–≥168)"
+  default     = 48
 }
 
