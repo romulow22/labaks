@@ -27,3 +27,4 @@ container_name       = "tfstatecontainer"
 key                  = "${environment}-${project}-infra.tfstate"
 subscription_id      = "${subscription}"
 use_azuread_auth     = true
+use_oidc             = true
