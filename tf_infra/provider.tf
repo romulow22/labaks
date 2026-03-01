@@ -9,7 +9,7 @@ terraform {
     }
     helm = {
       source  = "hashicorp/helm"
-      version = "~>2.17"
+      version = "~>3.1.1"
     }
     local = {
       source  = "hashicorp/local"
@@ -58,7 +58,7 @@ provider "azurerm" {
 # Falls back to a no-op localhost endpoint when AKS has not been provisioned yet
 # (e.g. first run with enable_module_aks = false) to avoid provider init errors.
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host = (
       var.enable_module_aks
       ? module.aks[0].kube_config_host
