@@ -53,29 +53,30 @@ provider "azurerm" {
   }
 }
 
-# Helm provider uses AKS credentials directly from the data source in main.tf.
+# Helm provider reads AKS credentials from module.aks outputs instead of a data source
+# to avoid a provider-init circular dependency introduced in Terraform 1.14.
 # Falls back to a no-op localhost endpoint when AKS has not been provisioned yet
 # (e.g. first run with enable_module_aks = false) to avoid provider init errors.
 provider "helm" {
   kubernetes {
     host = (
       var.enable_module_aks
-      ? data.azurerm_kubernetes_cluster.aks[0].kube_config[0].host
+      ? module.aks[0].kube_config_host
       : "https://localhost"
     )
     client_certificate = (
       var.enable_module_aks
-      ? base64decode(data.azurerm_kubernetes_cluster.aks[0].kube_config[0].client_certificate)
+      ? base64decode(module.aks[0].kube_config_client_certificate)
       : ""
     )
     client_key = (
       var.enable_module_aks
-      ? base64decode(data.azurerm_kubernetes_cluster.aks[0].kube_config[0].client_key)
+      ? base64decode(module.aks[0].kube_config_client_key)
       : ""
     )
     cluster_ca_certificate = (
       var.enable_module_aks
-      ? base64decode(data.azurerm_kubernetes_cluster.aks[0].kube_config[0].cluster_ca_certificate)
+      ? base64decode(module.aks[0].kube_config_cluster_ca_certificate)
       : ""
     )
   }

@@ -164,12 +164,4 @@ module "aks" {
   depends_on                                   = [module.subnetaks, module.loganalytics]
 }
 
-# AKS credentials for the Helm provider — resolved after module.aks completes
-data "azurerm_kubernetes_cluster" "aks" {
-  count               = var.enable_module_aks ? 1 : 0
-  name                = "aks-${var.project_name}-${var.environment}"
-  resource_group_name = module.rg["aks"].rg_name
-  depends_on          = [module.aks]
-}
-
 
