@@ -126,6 +126,8 @@ aks_automatic_upgrade_channel    = "patch"
 aks_node_os_upgrade_channel      = "SecurityPatch"
 aks_image_cleaner_enabled        = true
 aks_image_cleaner_interval_hours = 48
+istio_revision                   = "asm-1-28"
+akv2k8s_chart_version            = "2.5.3"
 
 ######## AKS MONITORING ##########
 aks_log_data_collection_interval                     = "1m"

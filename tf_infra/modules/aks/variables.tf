@@ -146,3 +146,15 @@ variable "image_cleaner_interval_hours" {
   default     = 48
 }
 
+variable "istio_revision" {
+  type        = string
+  description = "Istio revision to deploy via the AKS managed add-on (e.g. asm-1-28)"
+  default     = "asm-1-28"
+}
+
+variable "akv2k8s_chart_version" {
+  type        = string
+  description = "Helm chart version for akv2k8s (Azure Key Vault to Kubernetes)"
+  default     = "2.5.3"
+}
+

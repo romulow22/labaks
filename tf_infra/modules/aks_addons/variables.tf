@@ -16,3 +16,9 @@ variable "aks_identity_client_id" {
   type        = string
   description = "Client ID of the AKS user-assigned managed identity — used by akv2k8s for Workload Identity"
 }
+
+variable "akv2k8s_chart_version" {
+  type        = string
+  description = "Helm chart version for akv2k8s (Azure Key Vault to Kubernetes)"
+  default     = "2.5.3"
+}

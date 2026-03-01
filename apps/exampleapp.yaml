@@ -1,6 +1,6 @@
 # ── Namespace ─────────────────────────────────────────────────────────────────
 # istio.io/rev label activates sidecar injection for the AKS managed Istio addon.
-# The revision value (asm-1-21) must match the Istio revision installed by AKS.
+# The revision value (asm-1-28) must match the Istio revision installed by AKS.
 # Do NOT use the classic istio-injection: enabled label with the managed addon.
 apiVersion: v1
 kind: Namespace
@@ -46,6 +46,18 @@ spec:
           requests:
             cpu: "0.2"
             memory: "128Mi"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
 ---
 # ── Service ───────────────────────────────────────────────────────────────────
 apiVersion: v1

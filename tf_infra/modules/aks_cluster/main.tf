@@ -108,7 +108,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
-    revisions                        = ["asm-1-28"]
+    revisions                        = [var.istio_revision]
   }
 
   # Scheduled maintenance window for AKS control-plane auto-upgrades
