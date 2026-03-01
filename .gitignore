@@ -48,3 +48,5 @@ tf_infra/backend.hcl
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+*secrets.ps1

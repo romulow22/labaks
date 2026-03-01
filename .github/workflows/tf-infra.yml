@@ -18,7 +18,7 @@ on:
       project:
         description: Project name
         required: true
-        default: siada
+        default: labromulo
         type: string
       environment:
         description: Environment
