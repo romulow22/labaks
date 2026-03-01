@@ -72,6 +72,10 @@ variable "bastion_scale_units" {
   type        = number
   description = "Number of scale units for the Standard SKU Bastion host (2–50). Ignored for Basic SKU."
   default     = 2
+  validation {
+    condition     = var.bastion_scale_units >= 2 && var.bastion_scale_units <= 50
+    error_message = "bastion_scale_units must be between 2 and 50."
+  }
 }
 
 # ========================== jumper VM variables ==========================
@@ -275,8 +279,12 @@ variable "storage_file_share_quota" {
 }
 
 variable "storage_container_access_type" {
-  description = "The Access Level configured for this Container."
+  description = "The Access Level configured for this Container. Valid options are blob, container or private."
   type        = string
+  validation {
+    condition     = contains(["blob", "container", "private"], var.storage_container_access_type)
+    error_message = "storage_container_access_type must be blob, container, or private."
+  }
 }
 
 // ========================== log analytics variables ==========================

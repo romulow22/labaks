@@ -51,6 +51,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2
@@ -62,7 +64,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: latest
+          terraform_version: "1.11.4"
           terraform_wrapper: false
 
       - name: Generate backend.hcl from template

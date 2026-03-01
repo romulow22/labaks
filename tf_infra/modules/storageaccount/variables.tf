@@ -4,7 +4,7 @@ variable "proj_name" {
 }
 
 variable "location" {
-  description = "Location for the Event Hub"
+  description = "Azure region where the storage account will be created"
   type        = string
 }
 
@@ -21,7 +21,7 @@ variable "environment" {
 
 variable "aks_identity_principal_id" {
   type        = string
-  description = "aks_identity_principal_id"
+  description = "Principal ID of the AKS user-assigned identity for Storage Blob Data Contributor role assignment"
 }
 
 
@@ -64,7 +64,7 @@ variable "allow_blob_public_access" {
 }
 
 variable "container_name" {
-  description = " (Required) The name of the Container within the Blob Storage Account where kafka messages should be captured"
+  description = "The name of the Container within the Blob Storage Account."
   type        = string
 
 }
@@ -75,16 +75,16 @@ variable "container_access_type" {
 
 }
 variable "file_share_name" {
-  description = " (Required) The name of the File Share within the Storage Account where Files should be stored"
+  description = "The name of the File Share within the Storage Account."
   type        = string
 }
 
 variable "file_share_quota" {
-  description = " (Required) The maximum size of the share, in gigabytes."
+  description = "The maximum size of the share, in gigabytes."
   type        = number
 }
 
 variable "workspace_id" {
   type        = string
-  description = "workspace_id"
+  description = "Log Analytics workspace resource ID for diagnostic settings"
 }

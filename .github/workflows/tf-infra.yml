@@ -50,7 +50,7 @@ permissions:
 
 env:
   WORKING_DIRECTORY: tf_infra
-  TF_VERSION: latest
+  TF_VERSION: "1.11.4"
   TF_IN_AUTOMATION: "true"
   ARM_USE_OIDC: "true"
   ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
