@@ -64,7 +64,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.11.4"
+          terraform_version: "1.14.4"
           terraform_wrapper: false
 
       - name: Generate backend.hcl from template
