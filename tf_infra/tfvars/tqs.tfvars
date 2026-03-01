@@ -70,7 +70,7 @@ akv2k8s_chart_version            = __akv2k8s_chart_version__
 aks_log_data_collection_interval                     = __aks_log_dc_interval__
 aks_log_namespace_filtering_mode_for_data_collection = __aks_log_ns_filtering_mode_for_dc__
 aks_log_namespaces_for_data_collection               = __aks_log_ns_for_dc__
-aks_log_enableContainerLogV2                         = __aks_log_enableContainerLogV2__
+aks_log_enable_container_log_v2                      = __aks_log_enable_container_log_v2__
 aks_log_streams                                      = __aks_log_streams__
 acr_sku                                              = __acr_sku__
 

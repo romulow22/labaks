@@ -89,7 +89,7 @@ A production-ready **Azure Kubernetes Service (AKS)** platform fully provisioned
 ### Prerequisites
 
 - Azure CLI (`az`)
-- Terraform `>=1.11.0`
+- Terraform `>=1.14.4`
 - PowerShell 7+
 - GitHub repository with Actions enabled
 
@@ -333,7 +333,7 @@ kubectl apply -f apps/exampleapp.yaml
 
 | Tool | Version |
 |------|---------|
-| Terraform | `>=1.11.0` |
+| Terraform | `>=1.14.4` |
 | AzureRM Provider | `~>4.14` |
 | Helm Provider | `~>2.17` |
 | TLS Provider | `~>4.0` |

@@ -133,7 +133,7 @@ akv2k8s_chart_version            = "2.5.3"
 aks_log_data_collection_interval                     = "1m"
 aks_log_namespace_filtering_mode_for_data_collection = "Off"
 aks_log_namespaces_for_data_collection               = ["kube-system", "gatekeeper-system", "azure-arc"]
-aks_log_enableContainerLogV2                         = true
+aks_log_enable_container_log_v2                      = true
 aks_log_streams = [
   "Microsoft-ContainerLog",
   "Microsoft-ContainerLogV2",

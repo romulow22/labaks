@@ -12,6 +12,7 @@ output "aks_cluster_id" {
 output "aks_cluster_fqdn" {
   value       = var.enable_module_aks ? module.aks[0].aks_cluster_fqdn : ""
   description = "FQDN of the AKS API server"
+  sensitive   = true
 }
 
 # ── Resource Groups ──────────────────────────────────────────────────────────
