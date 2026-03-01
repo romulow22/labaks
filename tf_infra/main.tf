@@ -158,6 +158,8 @@ module "aks" {
   node_os_upgrade_channel                      = var.aks_node_os_upgrade_channel
   image_cleaner_enabled                        = var.aks_image_cleaner_enabled
   image_cleaner_interval_hours                 = var.aks_image_cleaner_interval_hours
+  istio_revision                               = var.istio_revision
+  akv2k8s_chart_version                        = var.akv2k8s_chart_version
   depends_on                                   = [module.subnetaks, module.loganalytics]
 }
 

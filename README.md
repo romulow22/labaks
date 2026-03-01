@@ -25,6 +25,7 @@ A production-ready **Azure Kubernetes Service (AKS)** platform fully provisioned
 │   ├── provider.tf                # AzureRM provider configuration
 │   ├── tfvars/
 │   │   ├── des.tfvars             # Development environment values
+│   │   ├── tqs.tfvars             # QA/testing environment values (tokenized)
 │   │   └── prd.tfvars             # Production environment values (tokenized)
 │   └── modules/
 │       ├── acr/                   # Azure Container Registry
@@ -185,7 +186,7 @@ terraform_validate
 - **Token replacement** (`cschleiden/replace-tokens`) injects `subscription_id`, `project_name`, and `env` into `.tfvars` files only — `backend.tf` is no longer touched.
 - **TFLint** runs on every execution for static analysis.
 - **Infracost** (currency: BRL) generates a cost estimate during plan for non-`des` environments.
-- **Terraform Workspaces** isolate state per environment (`des`, `prd`).
+- **Terraform Workspaces** isolate state per environment (`des`, `tqs`, `prd`).
 - Plan artifacts are uploaded and retained for 5 days.
 - Concurrent runs for the same project+environment are blocked (`cancel-in-progress: false`).
 
@@ -226,19 +227,20 @@ Orchestrator module that composes:
 ### `modules/aks_cluster`
 Core AKS cluster resource:
 - System node pool (`sysnodepool`) on VMSS with autoscaling and `os_sku = "AzureLinux"`
-- Separate worker node pool with configurable VM size
+- Separate worker node pool with configurable VM size (Spot instances in `des` to reduce costs)
 - User-assigned managed identity
 - **Workload Identity** (`workload_identity_enabled = true`) + **OIDC Issuer** (`oidc_issuer_enabled = true`) — required for pod-level Azure auth (akv2k8s)
 - `automatic_upgrade_channel` and `node_os_upgrade_channel` (defaults: `patch` / `SecurityPatch`)
 - Image cleaner to purge unused container images from nodes on a configurable interval (default: 48 h)
 - `max_surge = "33%"` on both system and worker node pools for faster rolling upgrades
 - Scheduled maintenance windows: control-plane upgrades Sunday 02:00 UTC-3; node OS updates Sunday 03:00 UTC-3
+- Managed Istio add-on with configurable revision via `istio_revision` variable (default: `asm-1-28`)
 - Integrated Log Analytics for Container Insights
 
 ### `modules/aks_addons`
 Helm releases deployed to the cluster after provisioning:
-- **akv2k8s** (`v2.5.3`) — Key Vault to Kubernetes secret sync using Workload Identity
-- Debug-level logging in `des`; info-level in `prd`
+- **akv2k8s** (version controlled via `akv2k8s_chart_version` variable, default `2.5.3`) — Key Vault to Kubernetes secret sync using Workload Identity
+- Debug-level logging in `des`; info-level in `tqs`/`prd`
 
 ### `modules/aks_monitoring`
 Creates Azure Monitor Data Collection Rules and associates them with the AKS cluster for Container Insights telemetry.

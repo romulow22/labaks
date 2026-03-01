@@ -6,7 +6,7 @@ resource "helm_release" "akv2k8s" {
   chart            = "akv2k8s"
   namespace        = "akv2k8s"
   create_namespace = true
-  version          = "2.5.3"
+  version          = var.akv2k8s_chart_version
   cleanup_on_fail  = true
   atomic           = true
   timeout          = 300

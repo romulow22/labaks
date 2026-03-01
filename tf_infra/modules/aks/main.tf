@@ -19,6 +19,7 @@ module "cluster" {
   node_os_upgrade_channel      = var.node_os_upgrade_channel
   image_cleaner_enabled        = var.image_cleaner_enabled
   image_cleaner_interval_hours = var.image_cleaner_interval_hours
+  istio_revision               = var.istio_revision
 }
 
 module "acr" {
@@ -55,6 +56,7 @@ module "addons" {
   environment            = var.environment
   aks_cluster_id         = module.cluster.aks_cluster_id
   aks_identity_client_id = module.cluster.user_assigned_identity_client_id
+  akv2k8s_chart_version  = var.akv2k8s_chart_version
   depends_on             = [module.cluster, module.monitoring]
 }
 

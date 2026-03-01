@@ -94,3 +94,9 @@ variable "image_cleaner_interval_hours" {
   description = "Interval in hours between image cleaner runs"
   default     = 48
 }
+
+variable "istio_revision" {
+  type        = string
+  description = "Istio revision to deploy via the AKS managed add-on (e.g. asm-1-28)"
+  default     = "asm-1-28"
+}

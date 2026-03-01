@@ -27,6 +27,7 @@ on:
         type: choice
         options:
           - des
+          - tqs
           - prd
       tf_loglevel:
         description: Terraform Log Level

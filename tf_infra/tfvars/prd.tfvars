@@ -63,6 +63,8 @@ aks_automatic_upgrade_channel    = __aks_automatic_upgrade_channel__
 aks_node_os_upgrade_channel      = __aks_node_os_upgrade_channel__
 aks_image_cleaner_enabled        = __aks_image_cleaner_enabled__
 aks_image_cleaner_interval_hours = __aks_image_cleaner_interval_hours__
+istio_revision                   = __istio_revision__
+akv2k8s_chart_version            = __akv2k8s_chart_version__
 
 ######## AKS MONITORING ##########
 aks_log_data_collection_interval                     = __aks_log_dc_interval__
