@@ -10,13 +10,6 @@ output "storage_account_id" {
   description = "ID of the Storage Account"
 }
 
-# Storage Account CString
-output "storage_account_conn_string" {
-  value       = azurerm_storage_account.storage_account.primary_connection_string
-  description = "Connection String of the Storage Account"
-  sensitive   = true
-}
-
 
 # Storage Container Name
 output "storage_container_name" {

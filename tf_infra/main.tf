@@ -111,6 +111,7 @@ module "bastion" {
   vnet_name             = var.enable_module_vnet ? module.vnet[0].vnet_name : ""
   bastion_subnet_prefix = var.bastion_subnet_prefix
   bastion_sku           = var.bastion_sku
+  bastion_scale_units   = var.bastion_scale_units
   depends_on            = [module.vnet]
 }
 

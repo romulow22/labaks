@@ -2,11 +2,6 @@
 name: Helm Deploy
 
 on:
-  push:
-    branches: [main, dev]
-    paths:
-      - ".github/workflows/helm/**"
-      - ".github/workflows/helm-deploy.yaml"
   workflow_dispatch:
     inputs:
       release:
@@ -84,7 +79,12 @@ jobs:
         run: |
           set -euo pipefail
           terraform init -reconfigure -backend-config=backend.hcl
-          terraform workspace select -or-create=true ${{ inputs.environment }}
+          # Fail fast if the workspace does not exist — do not silently create it
+          if ! terraform workspace list | grep -qw "${{ inputs.environment }}"; then
+            echo "Error: Terraform workspace '${{ inputs.environment }}' does not exist. Run tf-infra.yml plan/apply first." >&2
+            exit 1
+          fi
+          terraform workspace select ${{ inputs.environment }}
           echo "AZURE_RESOURCE_GROUP=$(terraform output -raw resource_group_name)" >> "$GITHUB_ENV"
           echo "AKS_CLUSTER_NAME=$(terraform output -raw aks_name)" >> "$GITHUB_ENV"
 

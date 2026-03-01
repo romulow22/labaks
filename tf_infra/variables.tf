@@ -68,6 +68,12 @@ variable "bastion_sku" {
   }
 }
 
+variable "bastion_scale_units" {
+  type        = number
+  description = "Number of scale units for the Standard SKU Bastion host (2–50). Ignored for Basic SKU."
+  default     = 2
+}
+
 # ========================== jumper VM variables ==========================
 variable "jumper_vm_size" {
   type        = string
