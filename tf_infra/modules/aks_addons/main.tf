@@ -40,6 +40,6 @@ resource "helm_release" "akv2k8s" {
       name  = "global.azureWorkloadIdentity.clientId"
       value = var.aks_identity_client_id
     }
-  ]  
+  ]
   depends_on = [var.aks_cluster_id]
 }
