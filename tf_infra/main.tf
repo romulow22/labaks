@@ -54,13 +54,13 @@ module "subnetpvt" {
 module "loganalytics" {
   source        = "./modules/loganalytics"
   for_each      = var.enable_module_loganalytics ? var.log_analytics : {}
-  rg_name       = module.rg["${each.value}"].rg_name
+  rg_name       = module.rg[each.value].rg_name
   environment   = var.environment
   proj_name     = var.project_name
   location      = var.region
   workspace_sku = var.log_analytics_workspace_sku
   workspaces = {
-    (each.value) = var.log_analytics_workspaces["${each.value}"]
+    (each.value) = var.log_analytics_workspaces[each.value]
   }
   depends_on = [module.rg]
 }

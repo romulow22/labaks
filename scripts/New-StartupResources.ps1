@@ -84,7 +84,7 @@ function Invoke-AzureLoginCheck {
     Write-Host "Checking Azure login status..."
     $account = az account show 2>$null
     if ($null -eq $account) {
-        Write-Host "Not logged in — running az login..."
+        Write-Host "Not logged in - running az login..."
         az login
         if ($LASTEXITCODE -ne 0) { Write-Error "az login failed"; exit 1 }
     }
@@ -154,9 +154,9 @@ Write-Host "Bootstrap complete!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Configure the following in your GitHub Environments (des / tqs / prd):" -ForegroundColor Yellow
 Write-Host ""
-Write-Host "  Variables (no secrets required — authentication uses OIDC federated identity):"
-Write-Host "    ARM_CLIENT_ID       : <service-principal-app-id>"
-Write-Host "    ARM_TENANT_ID       : <azure-tenant-id>"
+Write-Host "  Variables (no secrets required - authentication uses OIDC federated identity):"
+Write-Host "    ARM_CLIENT_ID       : [service-principal-app-id]"
+Write-Host "    ARM_TENANT_ID       : [azure-tenant-id]"
 Write-Host "    ARM_SUBSCRIPTION_ID : $SubscriptionId"
 Write-Host "    TF_PROJECT          : $ProjectName"
 Write-Host ""
