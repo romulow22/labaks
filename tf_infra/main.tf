@@ -60,7 +60,7 @@ module "loganalytics" {
   location      = var.region
   workspace_sku = var.log_analytics_workspace_sku
   workspaces = {
-    (each.value) = var.log_anatytics_workspaces["${each.value}"]
+    (each.value) = var.log_analytics_workspaces["${each.value}"]
   }
   depends_on = [module.rg]
 }
@@ -111,6 +111,7 @@ module "bastion" {
   vnet_name             = var.enable_module_vnet ? module.vnet[0].vnet_name : ""
   bastion_subnet_prefix = var.bastion_subnet_prefix
   bastion_sku           = var.bastion_sku
+  bastion_scale_units   = var.bastion_scale_units
   depends_on            = [module.vnet]
 }
 

@@ -37,3 +37,13 @@ variable "bastion_sku" {
     error_message = "bastion_sku must be Basic or Standard."
   }
 }
+
+variable "bastion_scale_units" {
+  type        = number
+  description = "Number of scale units for the Standard SKU Bastion host (2–50). Ignored for Basic SKU."
+  default     = 2
+  validation {
+    condition     = var.bastion_scale_units >= 2 && var.bastion_scale_units <= 50
+    error_message = "bastion_scale_units must be between 2 and 50."
+  }
+}

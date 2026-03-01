@@ -1,7 +1,7 @@
 # subnetname
 output "public_subnet_name" {
   value       = azurerm_subnet.public_subnet.name
-  description = "ID of virtual network"
+  description = "Name of the subnet"
 }
 
 # vnet public subnets

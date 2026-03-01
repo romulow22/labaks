@@ -68,6 +68,12 @@ variable "bastion_sku" {
   }
 }
 
+variable "bastion_scale_units" {
+  type        = number
+  description = "Number of scale units for the Standard SKU Bastion host (2–50). Ignored for Basic SKU."
+  default     = 2
+}
+
 # ========================== jumper VM variables ==========================
 variable "jumper_vm_size" {
   type        = string
@@ -283,7 +289,7 @@ variable "log_analytics_workspace_sku" {
   }
 }
 
-variable "log_anatytics_workspaces" {
+variable "log_analytics_workspaces" {
   description = "A map of workspaces and their associated solutions."
   type = map(object({
     retention_days = number

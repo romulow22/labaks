@@ -2,11 +2,6 @@
 name: Helm Deploy
 
 on:
-  push:
-    branches: [main, dev]
-    paths:
-      - "helm/**"
-      - ".github/workflows/helm-deploy.yml"
   workflow_dispatch:
     inputs:
       release:
@@ -17,24 +12,39 @@ on:
         {
           description: "Chart path",
           required: false,
-          default: "helm/hello-chart",
+          default: ".github/workflows/helm/hello-chart",
         }
       values_file:
         {
           description: "Values file",
           required: false,
-          default: "helm/hello-chart/values.yaml",
+          default: ".github/workflows/helm/hello-chart/values.yaml",
         }
+      environment:
+        description: Environment
+        required: true
+        default: des
+        type: choice
+        options:
+          - des
+          - tqs
+          - prd
 
 permissions:
   id-token: write
   contents: read
 
+env:
+  WORKING_DIRECTORY: tf_infra
+  ARM_USE_OIDC: "true"
+  ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # optional: require manual approval via an Environment (e.g., dev/prod)
-    # environment: dev
+    environment: ${{ inputs.environment }}
     concurrency:
       group: "helm-${{ github.ref }}-${{ inputs.namespace || vars.HELM_NAMESPACE || 'hello' }}"
       cancel-in-progress: false
@@ -45,37 +55,36 @@ jobs:
       - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ vars.ARM_CLIENT_ID }}
+          tenant-id: ${{ vars.ARM_TENANT_ID }}
+          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
 
-      - name: Set up Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.13.3
+          terraform_version: latest
+          terraform_wrapper: false
 
-      - name: Write backend config
-        working-directory: terraform
-        shell: bash
+      - name: Generate backend.hcl from template
+        working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
-          cat > backend.hcl <<'EOF'
-          resource_group_name  = "${{ vars.BACKEND_RG }}"
-          storage_account_name = "${{ vars.BACKEND_SA }}"
-          container_name       = "${{ vars.BACKEND_CONTAINER }}"
-          key                  = "${{ vars.BACKEND_KEY }}"
-          use_azuread_auth     = true
-          EOF
+          sed \
+            -e 's|${project}|${{ vars.TF_PROJECT }}|g' \
+            -e 's|${environment}|${{ inputs.environment }}|g' \
+            -e 's|${subscription}|${{ vars.ARM_SUBSCRIPTION_ID }}|g' \
+            backend.conf.tpl > backend.hcl
 
-      # If your IaC is in ./terraform, adjust the path accordingly
       - name: Read TF outputs (no plan/apply)
-        working-directory: terraform
-        env:
-          # If using azurerm backend, OIDC login above is enough,
-          # just ensure the workflow identity has Storage Blob Data Reader on the state container.
-          ARM_USE_OIDC: true
+        working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           set -euo pipefail
           terraform init -reconfigure -backend-config=backend.hcl
+          # Fail fast if the workspace does not exist — do not silently create it
+          if ! terraform workspace list | grep -qw "${{ inputs.environment }}"; then
+            echo "Error: Terraform workspace '${{ inputs.environment }}' does not exist. Run tf-infra.yml plan/apply first." >&2
+            exit 1
+          fi
+          terraform workspace select ${{ inputs.environment }}
           echo "AZURE_RESOURCE_GROUP=$(terraform output -raw resource_group_name)" >> "$GITHUB_ENV"
           echo "AKS_CLUSTER_NAME=$(terraform output -raw aks_name)" >> "$GITHUB_ENV"
 
@@ -98,7 +107,7 @@ jobs:
 
       - name: Helm lint
         run: |
-          CHART_PATH="${{ inputs.chart_path || vars.HELM_CHART_PATH || 'helm/hello-chart' }}"
+          CHART_PATH="${{ inputs.chart_path || vars.HELM_CHART_PATH || '.github/workflows/helm/hello-chart' }}"
           helm lint "$CHART_PATH"
 
       - name: Helm upgrade/install
@@ -106,8 +115,8 @@ jobs:
           set -euo pipefail
           RELEASE="${{ inputs.release     || vars.HELM_RELEASE     || 'hello' }}"
           NAMESPACE="${{ inputs.namespace || vars.HELM_NAMESPACE   || 'hello' }}"
-          CHART_PATH="${{ inputs.chart_path || vars.HELM_CHART_PATH || 'helm/hello-chart' }}"
-          VALUES_FILE="${{ inputs.values_file || vars.HELM_VALUES_FILE || 'helm/hello-chart/values.yaml' }}"
+          CHART_PATH="${{ inputs.chart_path || vars.HELM_CHART_PATH || '.github/workflows/helm/hello-chart' }}"
+          VALUES_FILE="${{ inputs.values_file || vars.HELM_VALUES_FILE || '.github/workflows/helm/hello-chart/values.yaml' }}"
 
           # ensure namespace exists
           kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
