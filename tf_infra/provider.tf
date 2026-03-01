@@ -57,7 +57,7 @@ provider "azurerm" {
 # Falls back to a no-op localhost endpoint when AKS has not been provisioned yet
 # (e.g. first run with enable_module_aks = false) to avoid provider init errors.
 provider "helm" {
-  kubernetes = {
+  kubernetes {
     host = (
       var.enable_module_aks
       ? data.azurerm_kubernetes_cluster.aks[0].kube_config[0].host
