@@ -83,6 +83,7 @@ module "storageaccount" {
   file_share_name           = var.storage_file_share_name
   file_share_quota          = var.storage_file_share_quota
   default_action            = var.storage_default_action
+  allow_blob_public_access  = var.storage_allow_blob_public_access
   workspace_id              = var.enable_module_loganalytics ? module.loganalytics["resources"].log_analytics_workspace_id["resources"] : ""
   depends_on                = [module.rg, module.aks, module.loganalytics]
 }

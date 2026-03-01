@@ -29,6 +29,7 @@ resource "azurerm_network_security_group" "public_nsg" {
 
   tags = {
     Environment = var.environment
+    Project     = var.proj_name
   }
 }
 

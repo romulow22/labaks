@@ -5,5 +5,6 @@ resource "azurerm_resource_group" "resource_group" {
 
   tags = {
     Environment = var.environment
+    Project     = var.proj_name
   }
 }

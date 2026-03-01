@@ -184,8 +184,7 @@ terraform_validate
 
 - **`backend.conf.tpl` → `backend.hcl`** — each job renders the template with `sed` using `inputs.project`, `inputs.environment`, and `ARM_SUBSCRIPTION_ID`. `backend.hcl` is gitignored and never committed. This is the single source of truth for all backend resource naming. `use_azuread_auth = true` is included so the backend authenticates via OIDC — no storage account key is needed.
 - **Token replacement** (`cschleiden/replace-tokens`) injects `subscription_id`, `project_name`, and `env` into `.tfvars` files only — `backend.tf` is no longer touched.
-- **TFLint** runs on every execution for static analysis.
-- **Infracost** (currency: BRL) generates a cost estimate during plan for non-`des` environments.
+- **TFLint** runs on every execution for static analysis (configured via `tf_infra/.tflint.hcl`).
 - **Terraform Workspaces** isolate state per environment (`des`, `tqs`, `prd`).
 - Plan artifacts are uploaded and retained for 5 days.
 - Concurrent runs for the same project+environment are blocked (`cancel-in-progress: false`).

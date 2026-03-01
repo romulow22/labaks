@@ -67,7 +67,7 @@ variable "rg_id" {
 
 variable "workspace_id" {
   type        = string
-  description = "workspace_id"
+  description = "Log Analytics workspace resource ID for Container Insights"
 }
 
 variable "data_collection_interval" {

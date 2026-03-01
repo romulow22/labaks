@@ -38,11 +38,13 @@ output "storage_share_url" {
 }
 
 output "storage_logdiagnostics_id" {
-  value = azurerm_monitor_diagnostic_setting.diag_storage.id
+  value       = azurerm_monitor_diagnostic_setting.diag_storage.id
+  description = "ID of the diagnostic setting for the storage account"
 }
 
 output "storage_logdiagnostics_name" {
-  value = azurerm_monitor_diagnostic_setting.diag_storage.name
+  value       = azurerm_monitor_diagnostic_setting.diag_storage.name
+  description = "Name of the diagnostic setting for the storage account"
 }
 
 
