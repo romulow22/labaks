@@ -1,6 +1,9 @@
 # Local .terraform directories
 .terraform/
 
+# The provider lock file (.terraform.lock.hcl) is intentionally NOT listed here
+# and should be committed to version control for reproducible provider installs.
+
 # .tfstate files
 *.tfstate
 *.tfstate.*

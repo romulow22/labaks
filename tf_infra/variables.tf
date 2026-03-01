@@ -119,12 +119,20 @@ variable "resource_groups" {
 # region
 variable "region" {
   type        = string
-  description = "Region"
+  description = "Azure region for all resources (e.g. brazilsouth, eastus)"
+  validation {
+    condition     = length(var.region) > 0
+    error_message = "region must not be empty."
+  }
 }
 
 variable "project_name" {
   type        = string
-  description = "Project name"
+  description = "Project name — used in all resource name prefixes"
+  validation {
+    condition     = can(regex("^[a-z0-9]{2,20}$", var.project_name))
+    error_message = "project_name must be 2–20 lowercase alphanumeric characters."
+  }
 }
 
 # Virtual Network CIDR
@@ -333,7 +341,7 @@ variable "aks_log_namespaces_for_data_collection" {
   default     = ["kube-system", "gatekeeper-system", "azure-arc"]
 }
 
-variable "aks_log_enableContainerLogV2" {
+variable "aks_log_enable_container_log_v2" {
   type        = bool
   description = "Enable Container Log V2 for AKS."
   default     = true

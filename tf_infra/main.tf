@@ -153,7 +153,7 @@ module "aks" {
   data_collection_interval                     = var.aks_log_data_collection_interval
   namespace_filtering_mode_for_data_collection = var.aks_log_namespace_filtering_mode_for_data_collection
   namespaces_for_data_collection               = var.aks_log_namespaces_for_data_collection
-  enableContainerLogV2                         = var.aks_log_enableContainerLogV2
+  enable_container_log_v2                      = var.aks_log_enable_container_log_v2
   acr_sku                                      = var.acr_sku
   automatic_upgrade_channel                    = var.aks_automatic_upgrade_channel
   node_os_upgrade_channel                      = var.aks_node_os_upgrade_channel

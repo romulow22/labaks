@@ -45,7 +45,7 @@ module "monitoring" {
   data_collection_interval                     = var.data_collection_interval
   namespace_filtering_mode_for_data_collection = var.namespace_filtering_mode_for_data_collection
   namespaces_for_data_collection               = var.namespaces_for_data_collection
-  enableContainerLogV2                         = var.enableContainerLogV2
+  enable_container_log_v2                      = var.enable_container_log_v2
   streams                                      = var.streams
   depends_on                                   = [module.cluster]
 }

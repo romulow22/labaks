@@ -25,7 +25,7 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
           "interval" : var.data_collection_interval,
           "namespaceFilteringMode" : var.namespace_filtering_mode_for_data_collection,
           "namespaces" : var.namespaces_for_data_collection,
-          "enableContainerLogV2" : var.enableContainerLogV2
+          "enableContainerLogV2" : var.enable_container_log_v2
         }
       })
       name = "ContainerInsightsExtension"

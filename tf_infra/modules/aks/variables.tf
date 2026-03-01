@@ -92,7 +92,7 @@ variable "namespaces_for_data_collection" {
   default     = ["kube-system", "gatekeeper-system", "azure-arc"]
 }
 
-variable "enableContainerLogV2" {
+variable "enable_container_log_v2" {
   type        = bool
   description = "Enable Container Log V2 schema"
   default     = true
