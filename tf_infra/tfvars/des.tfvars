@@ -26,45 +26,6 @@ vnet       = ["10.0.0.0/16"]
 aks_subnet = ["10.0.1.0/24"]
 pvt_subnet = ["10.0.2.0/24"]
 
-aks_subnet_security_rules = [
-  {
-    name                         = "allow-https-inbound"
-    priority                     = 100
-    direction                    = "Inbound"
-    access                       = "Allow"
-    protocol                     = "Tcp"
-    source_port_ranges           = ["*"]
-    destination_port_ranges      = ["443"]
-    source_address_prefixes      = ["*"]
-    destination_address_prefixes = ["*"]
-  },
-  {
-    name                         = "allow-http-inbound"
-    priority                     = 110
-    direction                    = "Inbound"
-    access                       = "Allow"
-    protocol                     = "Tcp"
-    source_port_ranges           = ["*"]
-    destination_port_ranges      = ["80"]
-    source_address_prefixes      = ["*"]
-    destination_address_prefixes = ["*"]
-  }
-]
-
-pvt_subnet_security_rules = [
-  {
-    name                         = "allow-vnet-inbound"
-    priority                     = 100
-    direction                    = "Inbound"
-    access                       = "Allow"
-    protocol                     = "*"
-    source_port_ranges           = ["*"]
-    destination_port_ranges      = ["*"]
-    source_address_prefixes      = ["VirtualNetwork"]
-    destination_address_prefixes = ["VirtualNetwork"]
-  }
-]
-
 ########## Log Analytics ############
 log_analytics_workspace_sku = "PerGB2018"
 

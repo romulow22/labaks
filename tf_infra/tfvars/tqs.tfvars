@@ -18,11 +18,9 @@ environment     = "__env__"
 resource_groups = __resource_groups__
 
 ########### Network #################
-vnet                      = __vnet__
-aks_subnet                = __subnet_aks__
-aks_subnet_security_rules = __subnet_aks_security_rules__
-pvt_subnet                = __subnet_pvt__
-pvt_subnet_security_rules = __subnet_pvt_security_rules__
+vnet       = __vnet__
+aks_subnet = __subnet_aks__
+pvt_subnet = __subnet_pvt__
 
 ########## Log Analytics ############
 log_analytics_workspace_sku = __log_analytics_workspace_sku__

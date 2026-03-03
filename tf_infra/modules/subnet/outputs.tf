@@ -10,8 +10,3 @@ output "public_subnet_id" {
   description = "Public Subnet ID"
 }
 
-output "nsgID" {
-  value       = azurerm_network_security_group.public_nsg.id
-  description = "ID of the nsg"
-}
-

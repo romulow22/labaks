@@ -31,7 +31,6 @@ module "subnetaks" {
   environment           = var.environment
   proj_name             = var.project_name
   location              = var.region
-  security_rules        = var.aks_subnet_security_rules
   depends_on            = [module.vnet]
 }
 
@@ -46,7 +45,6 @@ module "subnetpvt" {
   environment           = var.environment
   proj_name             = var.project_name
   location              = var.region
-  security_rules        = var.pvt_subnet_security_rules
   depends_on            = [module.vnet]
 }
 
