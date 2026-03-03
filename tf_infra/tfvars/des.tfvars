@@ -76,7 +76,7 @@ jumper_admin_username = "azureadmin"
 ############ AKS #################
 aks_service_cidr   = "10.100.0.0/16"
 aks_dns_service_ip = "10.100.0.10"
-aks_version        = "1.31"
+aks_version        = "1.34.2"
 aks_max_node_count = 3
 aks_min_node_count = 1
 aks_node_vm_size   = "Standard_D2s_v3"
