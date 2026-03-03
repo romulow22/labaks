@@ -148,6 +148,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: terraform_validate
     environment: ${{ inputs.environment }}
+    timeout-minutes: 20
     if: contains(fromJson('["plan","apply"]'), inputs.action)
 
     steps:
@@ -206,6 +207,7 @@ jobs:
         run: |
           terraform plan \
             -input=false \
+            -lock-timeout=60s \
             -var-file="tfvars/${{ inputs.environment }}.tfvars" \
             -out=tfapply.tfplan
 
@@ -233,6 +235,7 @@ jobs:
     needs: terraform_validate
     if: inputs.action == 'plan_apply'
     environment: ${{ inputs.environment }}
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -287,6 +290,7 @@ jobs:
         run: |
           terraform plan \
             -input=false \
+            -lock-timeout=60s \
             -var-file="tfvars/${{ inputs.environment }}.tfvars" \
             -out=tfapply.tfplan
 
@@ -346,6 +350,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: terraform_validate
     environment: ${{ inputs.environment }}
+    timeout-minutes: 20
     if: contains(fromJson('["plan_destroy","apply_destroy"]'), inputs.action)
 
     steps:
@@ -404,6 +409,7 @@ jobs:
         run: |
           terraform plan \
             -input=false \
+            -lock-timeout=60s \
             -destroy \
             -var-file="tfvars/${{ inputs.environment }}.tfvars" \
             -out=tfdestroy.tfplan
