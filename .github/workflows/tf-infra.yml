@@ -210,10 +210,11 @@ jobs:
             -lock-timeout=60s \
             -var-file="tfvars/${{ inputs.environment }}.tfvars" \
             -out=tfapply.tfplan \
-            2>&1 | tee tfplan.txt
-          TF_EXIT=${PIPESTATUS[0]}
+            > tfplan.txt 2>&1
+          TF_EXIT=$?
+          cat tfplan.txt
           echo "---"
-          grep -E "^Plan:|^No changes\." tfplan.txt
+          grep -E "^Plan:|^No changes\." tfplan.txt || true
           exit $TF_EXIT
 
       - name: Archive files
@@ -298,10 +299,11 @@ jobs:
             -lock-timeout=60s \
             -var-file="tfvars/${{ inputs.environment }}.tfvars" \
             -out=tfapply.tfplan \
-            2>&1 | tee tfplan.txt
-          TF_EXIT=${PIPESTATUS[0]}
+            > tfplan.txt 2>&1
+          TF_EXIT=$?
+          cat tfplan.txt
           echo "---"
-          grep -E "^Plan:|^No changes\." tfplan.txt
+          grep -E "^Plan:|^No changes\." tfplan.txt || true
           exit $TF_EXIT
 
       - name: Terraform Apply
@@ -423,10 +425,11 @@ jobs:
             -destroy \
             -var-file="tfvars/${{ inputs.environment }}.tfvars" \
             -out=tfdestroy.tfplan \
-            2>&1 | tee tfdestroy.txt
-          TF_EXIT=${PIPESTATUS[0]}
+            > tfdestroy.txt 2>&1
+          TF_EXIT=$?
+          cat tfdestroy.txt
           echo "---"
-          grep -E "^Plan:|^No changes\." tfdestroy.txt
+          grep -E "^Plan:|^No changes\." tfdestroy.txt || true
           exit $TF_EXIT
 
       - name: Archive files
