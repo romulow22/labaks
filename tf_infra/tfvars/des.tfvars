@@ -11,8 +11,8 @@ enable_module_jumpervm       = true
 enable_module_keyvault       = true
 
 ####### Basic Info ##################
-subscription_id = __subscription_id__
-project_name    = __project_name__
+subscription_id = "__subscription_id__"
+project_name    = "__project_name__"
 region          = "brazilsouth"
 environment     = "des"
 resource_groups = {

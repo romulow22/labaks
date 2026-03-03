@@ -11,10 +11,10 @@ enable_module_jumpervm       = __enable_module_jumpervm__
 enable_module_keyvault       = __enable_module_keyvault__
 
 ####### Basic Info ##################
-subscription_id = __subscription_id__
-project_name    = __project_name__
-region          = __region__
-environment     = __env__
+subscription_id = "__subscription_id__"
+project_name    = "__project_name__"
+region          = "__region__"
+environment     = "__env__"
 resource_groups = __resource_groups__
 
 ########### Network #################
