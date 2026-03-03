@@ -59,7 +59,7 @@ resource "azurerm_storage_share" "storage_share" {
 
 # RBAC: grant AKS identity Storage Blob Data Contributor scoped to the storage account
 resource "azurerm_role_assignment" "storage_role" {
-  count                            = var.aks_identity_principal_id != "" ? 1 : 0
+  count                            = var.create_role_assignment ? 1 : 0
   scope                            = azurerm_storage_account.storage_account.id
   role_definition_name             = "Storage Blob Data Contributor"
   principal_id                     = var.aks_identity_principal_id

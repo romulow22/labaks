@@ -22,6 +22,13 @@ variable "environment" {
 variable "aks_identity_principal_id" {
   type        = string
   description = "Principal ID of the AKS user-assigned identity for Storage Blob Data Contributor role assignment"
+  default     = ""
+}
+
+variable "create_role_assignment" {
+  type        = bool
+  description = "Set to true to create the Storage Blob Data Contributor role assignment for the AKS identity. Must be a static value — do not derive from resource attributes."
+  default     = false
 }
 
 

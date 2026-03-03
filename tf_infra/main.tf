@@ -74,6 +74,7 @@ module "storageaccount" {
   rg_name                   = module.rg["resources"].rg_name
   rg_id                     = module.rg["resources"].rg_id
   aks_identity_principal_id = var.enable_module_aks ? module.aks[0].user_assigned_identity_principal_id : ""
+  create_role_assignment    = var.enable_module_aks
   access_tier               = var.storage_access_tier
   account_kind              = var.storage_account_kind
   replication_type          = var.storage_replication_type
