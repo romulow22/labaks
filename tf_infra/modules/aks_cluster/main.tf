@@ -40,7 +40,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
   default_node_pool {
     name                 = "sysnodepool"
     vm_size              = var.node_vm_size
-    zones                = ["1"]
     auto_scaling_enabled = true
     node_count           = 1
     max_count            = var.max_count
@@ -157,7 +156,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "wrk_nodepool" {
   name                  = "wrknodepool"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
   vm_size               = var.node_vm_size
-  zones                 = ["1"]
   auto_scaling_enabled  = true
   max_count             = var.max_count
   min_count             = var.min_count
