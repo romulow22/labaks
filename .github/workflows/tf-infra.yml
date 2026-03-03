@@ -205,15 +205,16 @@ jobs:
       - name: Terraform Plan
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
-          set -o pipefail
           terraform plan \
             -input=false \
             -lock-timeout=60s \
             -var-file="tfvars/${{ inputs.environment }}.tfvars" \
             -out=tfapply.tfplan \
             2>&1 | tee tfplan.txt
+          TF_EXIT=${PIPESTATUS[0]}
           echo "---"
           grep -E "^Plan:|^No changes\." tfplan.txt
+          exit $TF_EXIT
 
       - name: Archive files
         run: |
@@ -292,15 +293,16 @@ jobs:
       - name: Terraform Plan
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
-          set -o pipefail
           terraform plan \
             -input=false \
             -lock-timeout=60s \
             -var-file="tfvars/${{ inputs.environment }}.tfvars" \
             -out=tfapply.tfplan \
             2>&1 | tee tfplan.txt
+          TF_EXIT=${PIPESTATUS[0]}
           echo "---"
           grep -E "^Plan:|^No changes\." tfplan.txt
+          exit $TF_EXIT
 
       - name: Terraform Apply
         working-directory: ${{ env.WORKING_DIRECTORY }}
@@ -415,7 +417,6 @@ jobs:
       - name: Terraform Plan Destroy
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
-          set -o pipefail
           terraform plan \
             -input=false \
             -lock-timeout=60s \
@@ -423,8 +424,10 @@ jobs:
             -var-file="tfvars/${{ inputs.environment }}.tfvars" \
             -out=tfdestroy.tfplan \
             2>&1 | tee tfdestroy.txt
+          TF_EXIT=${PIPESTATUS[0]}
           echo "---"
           grep -E "^Plan:|^No changes\." tfdestroy.txt
+          exit $TF_EXIT
 
       - name: Archive files
         run: |
