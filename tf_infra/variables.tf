@@ -176,6 +176,20 @@ variable "aks_min_node_count" {
   description = "Minimum node count for worker node"
 }
 
+# max node count for system pool
+variable "aks_system_max_node_count" {
+  type        = number
+  description = "Maximum node count for system node pool"
+  default     = 3
+}
+
+# min node count for system pool
+variable "aks_system_min_node_count" {
+  type        = number
+  description = "Minimum node count for system node pool"
+  default     = 1
+}
+
 # size of worker node
 variable "aks_node_vm_size" {
   type        = string

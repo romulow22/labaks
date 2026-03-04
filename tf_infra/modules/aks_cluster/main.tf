@@ -42,8 +42,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
     vm_size              = var.system_node_vm_size
     auto_scaling_enabled = true
     node_count           = 1
-    max_count            = var.max_count
-    min_count            = var.min_count
+    max_count            = var.system_max_count
+    min_count            = var.system_min_count
     vnet_subnet_id       = var.subnetaks_id
     os_disk_size_gb      = 30
     os_disk_type         = "Managed"
@@ -182,10 +182,14 @@ resource "azurerm_kubernetes_cluster_node_pool" "wrk_nodepool" {
 
   node_taints = var.environment == "des" ? ["kubernetes.azure.com/scalesetpriority=spot:NoSchedule"] : []
 
-  upgrade_settings {
-    drain_timeout_in_minutes      = 0
-    max_surge                     = "33%"
-    node_soak_duration_in_minutes = 0
+  # Spot pools cannot have upgrade settings with maxUnavailable
+  dynamic "upgrade_settings" {
+    for_each = var.environment != "des" ? [1] : []
+    content {
+      drain_timeout_in_minutes      = 0
+      max_surge                     = "33%"
+      node_soak_duration_in_minutes = 0
+    }
   }
 
   tags = {

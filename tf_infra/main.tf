@@ -145,6 +145,8 @@ module "aks" {
   environment                                  = var.environment
   max_count                                    = var.aks_max_node_count
   min_count                                    = var.aks_min_node_count
+  system_max_count                             = var.aks_system_max_node_count
+  system_min_count                             = var.aks_system_min_node_count
   subnetaks_id                                 = var.enable_module_subnetaks ? module.subnetaks[0].public_subnet_id : ""
   node_vm_size                                 = var.aks_node_vm_size
   system_node_vm_size                          = var.aks_system_node_vm_size

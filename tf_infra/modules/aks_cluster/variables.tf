@@ -49,6 +49,16 @@ variable "min_count" {
   description = "Minimum node count for auto-scaling"
 }
 
+variable "system_max_count" {
+  type        = number
+  description = "Maximum node count for system pool auto-scaling"
+}
+
+variable "system_min_count" {
+  type        = number
+  description = "Minimum node count for system pool auto-scaling"
+}
+
 variable "subnetaks_id" {
   type        = string
   description = "Subnet ID for AKS node pools"

@@ -12,6 +12,8 @@ module "cluster" {
   system_node_vm_size          = var.system_node_vm_size
   max_count                    = var.max_count
   min_count                    = var.min_count
+  system_max_count             = var.system_max_count
+  system_min_count             = var.system_min_count
   subnetaks_id                 = var.subnetaks_id
   service_cidr                 = var.service_cidr
   dns_service_ip               = var.dns_service_ip

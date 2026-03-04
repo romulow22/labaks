@@ -27,6 +27,18 @@ variable "min_count" {
   description = "Minimum node count for worker node"
 }
 
+# max node count for system pool
+variable "system_max_count" {
+  type        = number
+  description = "Maximum node count for system node pool"
+}
+
+# min node count for system pool
+variable "system_min_count" {
+  type        = number
+  description = "Minimum node count for system node pool"
+}
+
 # subnet ID
 variable "subnetaks_id" {
   type        = string
