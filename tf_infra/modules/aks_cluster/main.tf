@@ -38,17 +38,18 @@ resource "azurerm_kubernetes_cluster" "aks" {
   image_cleaner_interval_hours = var.image_cleaner_interval_hours
 
   default_node_pool {
-    name                 = "sysnodepool"
-    vm_size              = var.system_node_vm_size
-    auto_scaling_enabled = true
-    node_count           = 1
-    max_count            = var.system_max_count
-    min_count            = var.system_min_count
-    vnet_subnet_id       = var.subnetaks_id
-    os_disk_size_gb      = 30
-    os_disk_type         = "Managed"
-    os_sku               = "AzureLinux"
-    type                 = "VirtualMachineScaleSets"
+    name                        = "sysnodepool"
+    vm_size                     = var.system_node_vm_size
+    temporary_name_for_rotation = "systemptemp"
+    auto_scaling_enabled        = true
+    node_count                  = 1
+    max_count                   = var.system_max_count
+    min_count                   = var.system_min_count
+    vnet_subnet_id              = var.subnetaks_id
+    os_disk_size_gb             = 30
+    os_disk_type                = "Managed"
+    os_sku                      = "AzureLinux"
+    type                        = "VirtualMachineScaleSets"
 
     node_labels = {
       "nodepool-type" = "system"
