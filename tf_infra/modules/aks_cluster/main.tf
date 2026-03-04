@@ -166,31 +166,22 @@ resource "azurerm_kubernetes_cluster_node_pool" "wrk_nodepool" {
   os_type               = "Linux"
   mode                  = "User"
 
-  priority        = var.environment == "des" ? "Spot" : "Regular"
-  eviction_policy = var.environment == "des" ? "Deallocate" : null
-  spot_max_price  = var.environment == "des" ? -1 : null
+  priority        = "Regular"
+  eviction_policy = null
+  spot_max_price  = null
 
-  node_labels = merge(
-    {
-      "nodepool-type" = "user"
-      "environment"   = var.environment
-      "nodepoolos"    = "linux"
-    },
-    var.environment == "des" ? {
-      "kubernetes.azure.com/scalesetpriority" = "spot"
-    } : {}
-  )
+  node_labels = {
+    "nodepool-type" = "user"
+    "environment"   = var.environment
+    "nodepoolos"    = "linux"
+  }
 
-  node_taints = var.environment == "des" ? ["kubernetes.azure.com/scalesetpriority=spot:NoSchedule"] : []
+  node_taints = []
 
-  # Spot pools cannot have upgrade settings with maxUnavailable
-  dynamic "upgrade_settings" {
-    for_each = var.environment != "des" ? [1] : []
-    content {
-      drain_timeout_in_minutes      = 0
-      max_surge                     = "33%"
-      node_soak_duration_in_minutes = 0
-    }
+  upgrade_settings {
+    drain_timeout_in_minutes      = 0
+    max_surge                     = "33%"
+    node_soak_duration_in_minutes = 0
   }
 
   tags = {
