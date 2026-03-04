@@ -80,7 +80,7 @@ aks_version             = "1.34.2"
 aks_max_node_count      = 1
 aks_min_node_count      = 1
 aks_node_vm_size        = "Standard_D4ds_v6"
-aks_system_node_vm_size = "Standard_D4ds_v5"
+aks_system_node_vm_size = "Standard_D2ds_v6"
 acr_sku                 = "Basic"
 
 ######## AKS UPGRADE / MAINTENANCE ##########
