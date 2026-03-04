@@ -39,6 +39,12 @@ variable "node_vm_size" {
   description = "Worker nodes size"
 }
 
+variable "system_node_vm_size" {
+  type        = string
+  description = "System node pool VM size"
+  default     = "Standard_D2s_v3"
+}
+
 variable "cluster_version" {
   type        = string
   description = "AKS version"

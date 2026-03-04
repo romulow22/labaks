@@ -33,6 +33,12 @@ variable "node_vm_size" {
   description = "VM size for cluster node pools"
 }
 
+variable "system_node_vm_size" {
+  type        = string
+  description = "VM size for system node pool (can differ from worker pool)"
+  default     = "Standard_D2s_v3"
+}
+
 variable "max_count" {
   type        = number
   description = "Maximum node count for auto-scaling"

@@ -147,6 +147,7 @@ module "aks" {
   min_count                                    = var.aks_min_node_count
   subnetaks_id                                 = var.enable_module_subnetaks ? module.subnetaks[0].public_subnet_id : ""
   node_vm_size                                 = var.aks_node_vm_size
+  system_node_vm_size                          = var.aks_system_node_vm_size
   workspace_id                                 = var.enable_module_loganalytics ? module.loganalytics["aks"].log_analytics_workspace_id["aks"] : ""
   streams                                      = var.aks_log_streams
   data_collection_interval                     = var.aks_log_data_collection_interval

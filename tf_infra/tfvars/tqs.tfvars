@@ -49,12 +49,13 @@ jumper_vm_size        = __jumper_vm_size__
 jumper_admin_username = __jumper_admin_username__
 
 ############ AKS #################
-aks_service_cidr   = __aks_service_cidr__
-aks_dns_service_ip = __aks_dns_service_ip__
-aks_version        = __aks_version__
-aks_max_node_count = __aks_max_node_count__
-aks_min_node_count = __aks_min_node_count__
-aks_node_vm_size   = __aks_node_vm_size__
+aks_service_cidr        = __aks_service_cidr__
+aks_dns_service_ip      = __aks_dns_service_ip__
+aks_version             = __aks_version__
+aks_max_node_count      = __aks_max_node_count__
+aks_min_node_count      = __aks_min_node_count__
+aks_node_vm_size        = __aks_node_vm_size__
+aks_system_node_vm_size = __aks_system_node_vm_size__
 
 ######## AKS UPGRADE / MAINTENANCE ##########
 aks_automatic_upgrade_channel    = __aks_automatic_upgrade_channel__

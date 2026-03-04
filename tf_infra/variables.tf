@@ -182,6 +182,12 @@ variable "aks_node_vm_size" {
   description = "Size of worker node"
 }
 
+variable "aks_system_node_vm_size" {
+  type        = string
+  description = "Size of system node pool (can differ from worker nodes)"
+  default     = "Standard_D2s_v3"
+}
+
 variable "aks_version" {
   type        = string
   description = "Version of the AKS"

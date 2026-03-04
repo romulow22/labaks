@@ -9,6 +9,7 @@ module "cluster" {
   rg_id                        = var.rg_id
   cluster_version              = var.cluster_version
   node_vm_size                 = var.node_vm_size
+  system_node_vm_size          = var.system_node_vm_size
   max_count                    = var.max_count
   min_count                    = var.min_count
   subnetaks_id                 = var.subnetaks_id

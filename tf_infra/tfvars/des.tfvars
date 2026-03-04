@@ -74,13 +74,14 @@ jumper_vm_size        = "Standard_B2s"
 jumper_admin_username = "azureadmin"
 
 ############ AKS #################
-aks_service_cidr   = "10.100.0.0/16"
-aks_dns_service_ip = "10.100.0.10"
-aks_version        = "1.34.2"
-aks_max_node_count = 3
-aks_min_node_count = 1
-aks_node_vm_size   = "Standard_D2s_v3"
-acr_sku            = "Basic"
+aks_service_cidr        = "10.100.0.0/16"
+aks_dns_service_ip      = "10.100.0.10"
+aks_version             = "1.34.2"
+aks_max_node_count      = 1
+aks_min_node_count      = 1
+aks_node_vm_size        = "Standard_D4s_v6"
+aks_system_node_vm_size = "Standard_D4s_v5"
+acr_sku                 = "Basic"
 
 ######## AKS UPGRADE / MAINTENANCE ##########
 aks_automatic_upgrade_channel    = "patch"
